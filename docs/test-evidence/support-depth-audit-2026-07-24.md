@@ -18,7 +18,7 @@ Environment:
 | SQL-compatible | MariaDB 11.4.12, CockroachDB 24.3.8, TimescaleDB 2.17.2/PG16, TiDB 8.5.6 | PASS | named-product CRUD/catalog/type/bounds, direct bound parameters, atomic import/late-failure rollback, cleanup |
 | CQL | Cassandra 5.0.8, ScyllaDB 2026.1.8 | PASS | CQL and SQL-compatible CRUD, schema/PK metadata, typed collections, paging/budgets, guarded cleanup, file fixture |
 | KV/document | Redis 7.4.9, Valkey 8.1.8, KeyDB 6.3 image, Dragonfly 1.39.0, MongoDB 7.0.37 | PASS | binary/empty/missing/TTL, strict SCAN, exact raw/mutation budgets, one/many document mutations and cleanup |
-| Search/time series | OpenSearch 2.17.1 HTTP and security HTTPS, Elasticsearch 8.15.5 HTTP and HTTPS, Prometheus 2.55.1 | PASS | exact search CRUD/catalog/budgets/cleanup; CA/auth negative tests; remote write/range/catalog and cleanup |
+| Search/time series | OpenSearch 2.17.1 HTTP and security HTTPS, Elasticsearch 8.15.5 HTTP and HTTPS, Prometheus 2.55.1, VictoriaMetrics 1.148.0 | PASS | exact search CRUD/catalog/budgets/cleanup; CA/auth negative tests; named-product remote write/range/catalog and cleanup |
 | Messaging | Redis Streams/PubSub, Redpanda 24.3.6 Kafka API, RabbitMQ 3.13.7 AMQP/management, NATS 2.10.29 | PASS | bounded produce/consume, ACK/group/admin/detail/lag where supported, exact budgets, cleanup |
 | Messaging TLS | RabbitMQ 3.13.7 AMQPS, NATS 2.10.29 TLS | PASS | CA-backed connection, produce/consume/admin lifecycle |
 
@@ -30,6 +30,7 @@ Commands:
 DBTOOL_IT_DB_SUITE_PHASES='compat-extra cassandra scylla cassandra-fixture messaging messaging-native messaging-tls observability opensearch-security elasticsearch' DBTOOL_IT_DB_SUITE_CONTINUE=1 ./scripts/integration-db-suite.sh
 DBTOOL_IT_DB_SUITE_PHASES='cassandra-fixture messaging elasticsearch-https' DBTOOL_IT_DB_SUITE_CONTINUE=1 ./scripts/integration-db-suite.sh
 DBTOOL_IT_DB_SUITE_DRY_RUN=1 DBTOOL_IT_DB_SUITE_PHASES=local-heavy ./scripts/integration-db-suite.sh
+./scripts/integration-victoriametrics-test.sh
 ```
 
 The first default run found four stale test contracts rather than connector
@@ -53,6 +54,13 @@ CA/server certificate, hostname-valid SANs, and the registered
 401, omission of the CA was rejected during certificate validation, and the
 full index/document lifecycle ended with no test index.
 
+VictoriaMetrics is likewise named-product evidence rather than an inferred
+Prometheus alias: v1.148.0 completed guarded remote write, measurement catalog,
+relative/explicit range readback, exact source timestamps, and independent
+sample/series/byte budget checks through `victoriametrics://`. Native
+VictoriaMetrics import/export, multitenancy, clustering, and authenticated
+`vmauth` routing remain outside this claim.
+
 ## Honest Non-Pass Boundaries
 
 | Product/surface | Status | Current evidence |
@@ -64,5 +72,6 @@ full index/document lifecycle ended with no test index.
 | TiDB secure HA drills | not rerun locally | the 2 CPU allocation is below the documented secure-HA profile requirement; single-cluster TiDB passed. |
 | RabbitMQ management HTTPS | NOT_IMPLEMENTED | the admin adapter is deliberately registered only for `rabbitmq+http://`; direct AMQPS is tested, but management HTTPS requires a TLS HTTP transport. |
 
-Cleanup: PASS. The final `docker ps --filter name=dbtool-it` output was empty
-after the HTTPS profile was added to the common teardown path.
+Cleanup: PASS. The final product-specific container, network, and volume
+queries were empty after the VictoriaMetrics profile used the common teardown
+path.

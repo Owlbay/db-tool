@@ -69,6 +69,7 @@ and test-hardening commits remain listed inside each evidence file.
 | DB-OPENSEARCH-TLS-001 | Search | OpenSearch security HTTPS | Docker opensearch-security | Ready | COMPLETE | `docs/test-evidence/opensearch-security.md` | `b9dd9fd`, `e0ce46f`; real plugin CA/auth failures, full CRUD, exact reads, target-bound deletion and public cleanup PASS |
 | DB-ELASTICSEARCH-001 | Search | Elasticsearch `elasticsearch://`, `elasticsearch+https://` | Docker elasticsearch / elasticsearch-https | Ready | COMPLETE | `docs/test-evidence/elasticsearch.md` | `3822948`, `4b6b6e2`, IF-T78 exact mutations plus 2026-07-24 X-Pack HTTPS/auth/CA refresh |
 | DB-PROMETHEUS-001 | Time series | Prometheus `prometheus://` | Docker observability | Ready | COMPLETE | `docs/test-evidence/prometheus.md` | `3c9c2d4`, IF-T78 exact remote-write and zero-series cleanup refresh |
+| DB-VICTORIAMETRICS-001 | Time series | VictoriaMetrics `victoriametrics://` | Docker victoriametrics | Ready | COMPLETE | `docs/test-evidence/victoriametrics.md` | `dac0b23`, `4e200e1`; real v1.148.0 Prometheus-compatible write/catalog/range/budget lifecycle |
 | DB-REDIS-MQ-001 | Messaging | Redis Streams/PubSub | Docker messaging | Ready | COMPLETE | `docs/test-evidence/redis-messaging.md` | `d2c88a2`, IF-T48; Redis/Valkey/KeyDB/Dragonfly group replay/XACK matrix, truthful lag negotiation and zero residual Streams passed |
 | DB-KAFKA-001 | Messaging | Kafka API on Redpanda | Docker messaging | Ready | COMPLETE | `docs/test-evidence/kafka-redpanda.md` | `d2c88a2`, `de6b79e`; pure lag `UNSUPPORTED_CAPABILITY`, native committed-offset lag PASS, public topic delete/absence PASS |
 | DB-RABBITMQ-001 | Messaging | AMQP + RabbitMQ management | Docker messaging | Ready | COMPLETE | `docs/test-evidence/rabbitmq.md` | `d2c88a2`, IF-T47/IF-T59; confirms, ACKs, exact detail, conditional delete and zero residual queues passed |
@@ -94,6 +95,7 @@ boundaries found while re-auditing the current adapters and runners.
 | MongoDB | bounded find/aggregate, exact one/many mutations, `$out`/`$merge`, collection drop and cleanup | no current product gap |
 | OpenSearch, Elasticsearch | plain HTTP exact search CRUD, bounded reads/catalogs and guarded index cleanup; OpenSearch security-plugin HTTPS and Elasticsearch X-Pack HTTPS/auth/CA are product-tested | index catalog bounds are client/transport bounds, not server cursor pagination |
 | Prometheus | bounded metric catalog/range query and guarded remote write | public update/delete are not part of the Prometheus model; cleanup uses an integration-only admin path |
+| VictoriaMetrics | named-product `victoriametrics://` routing, bounded metric catalog/range query and guarded Prometheus remote write | native import/export, multitenancy, clustering and authenticated `vmauth` routing are not implemented or claimed |
 | Redis messaging, Kafka/Redpanda, AMQP/RabbitMQ, NATS | bounded produce/consume, protocol-appropriate ACK/group/admin operations and guarded cleanup; AMQPS and NATS TLS are live-tested | pure Kafka has no group lag; direct AMQP has no portable queue catalog; NATS Core has no durable admin catalog; RabbitMQ management HTTPS is not implemented |
 | AutoMQ, WarpStream, Confluent | native Kafka runner and alias routing exist | product endpoints are external; live evidence must separately prove metadata/cursor fidelity for every supplied vendor |
 
@@ -111,6 +113,11 @@ boundaries found while re-auditing the current adapters and runners.
 | DB-GAP-ELASTICSEARCH-HTTPS-001 | P1 | VERIFIED | `elasticsearch+https://` previously had only service-free and shared TLS harness coverage | Elasticsearch 8.15.5 X-Pack HTTPS/basic-auth CRUD, bad-auth, missing-CA and cleanup PASS |
 | DB-GAP-RABBITMQ-MANAGEMENT-HTTPS-001 | P2 | NOT_IMPLEMENTED | `rabbitmq+http://` is admin-only and management TLS has no registered scheme/transport | implement `rabbitmq+https://` without weakening CA/auth validation, then add live management CRUD proof |
 | DB-GAP-LOCAL-RESOURCE-LANES-001 | P2 | VERIFIED | `heavy/all` mixed runnable single-service phases with TiDB HA, x86_64-only and external phases; `local-heavy` now selects only serial 2-CPU/8-GiB-safe product phases | exact dry-run inventory plus every selected local product phase PASS |
+| DB-GAP-ETCD-001 | P1 | RESEARCHED / NOT_IMPLEMENTED | no `etcd://` factory; Range/Put/DeleteRange/Txn/Watch and auth-token semantics require a new exact KV contract rather than a Redis alias | implement service-free base64/transaction budgets, then run a pinned etcd 3.6 product lifecycle |
+| DB-GAP-INFLUXDB2-001 | P2 | RESEARCHED / NOT_IMPLEMENTED | no `influxdb://` factory; org/bucket/token initialization and Flux query responses do not fit the Prometheus adapter directly | define explicit bucket/write/query capabilities, pin a 2.9.x image, and prove auth plus disposable-bucket cleanup |
+| DB-GAP-PULSAR-001 | P2 | RESEARCHED / NOT_IMPLEMENTED | no Pulsar factory or Rust client dependency; broker semantics include ACK, backlog and topic/subscription cleanup | dependency/API review first, then a resource-budgeted standalone Docker lifecycle |
+| DB-GAP-MQTT-001 | P3 | RESEARCHED / NOT_IMPLEMENTED | no MQTT factory; QoS ACK is protocol-level, lag is not offset-based, and topics are not durable admin resources | define a truthful publish/subscribe-only capability subset before selecting a client |
+| DB-GAP-ROCKETMQ-001 | P3 | RESEARCHED / NOT_IMPLEMENTED | no RocketMQ factory and no Apache-maintained Rust client was found; official admin semantics are deeper than current transport options | choose a maintained client or a bounded bridge before adding any scheme |
 
 Current campaign details and honest non-pass boundaries are recorded in
 [`support-depth-audit-2026-07-24.md`](test-evidence/support-depth-audit-2026-07-24.md).
@@ -135,6 +142,8 @@ configured Cassandra harness keyspace remains with zero tables.
 
 ## Design-Only, Not Registered
 
-Oracle, etcd, InfluxDB, VictoriaMetrics, Pulsar, MQTT, and RocketMQ still appear
-as design candidates in `dbtool-design.md`, but no factory is registered for
-them. They are not counted as current support and cannot be marked tested.
+Oracle, etcd, InfluxDB, Pulsar, MQTT, and RocketMQ still appear as design
+candidates in `dbtool-design.md`, but no factory is registered for them. They
+are not counted as current support and cannot be marked tested. VictoriaMetrics
+left this list only after its named scheme and real product lifecycle passed;
+that support remains limited to its Prometheus-compatible API.

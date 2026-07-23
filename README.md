@@ -128,6 +128,7 @@ cargo run -p dbtool-cli -- --dsn opensearch://127.0.0.1:9200 --allow-write searc
 cargo run -p dbtool-cli -- --dsn prometheus://127.0.0.1:9090 ts measurements
 cargo run -p dbtool-cli -- --dsn prometheus://127.0.0.1:9090 ts query up --last-minutes 10
 cargo run -p dbtool-cli -- --dsn prometheus://127.0.0.1:9090 --allow-write ts write dbtool_sample 1 --tag job=dbtool
+cargo run -p dbtool-cli -- --dsn victoriametrics://127.0.0.1:8428 ts measurements
 cargo run -p dbtool-cli -- --conn local --limit 100 export sql --query "select * from users" --out users.json
 ```
 
@@ -442,6 +443,12 @@ OpenSearch-compatible HTTPS harness, and Prometheus:
 
 ```bash
 ./scripts/integration-observability-test.sh
+```
+
+VictoriaMetrics has a separate named-product Prometheus-compatible lifecycle:
+
+```bash
+./scripts/integration-victoriametrics-test.sh
 ```
 
 The HTTPS harness is built from [docker/search-tls/Dockerfile](docker/search-tls/Dockerfile)

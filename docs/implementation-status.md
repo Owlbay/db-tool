@@ -64,6 +64,7 @@ usable.
 | OpenSearch | `opensearch://`, `opensearch+https://` | Search HTTP/HTTPS | index list; complete-budget search/aggregations/get; auto-ID index; stable-ID put/update/delete; confirmed delete-index | OpenSearch 2.17.1 full CRUD, exact read operations, caller hit/byte failure checks and zero residual indices; HTTPS fixture and security-plugin transport/auth evidence retained |
 | Elasticsearch | `elasticsearch://`, `elasticsearch+https://` | Search HTTP/HTTPS | OpenSearch-compatible index list; complete-budget search/aggregations/get; full document/index lifecycle | Elasticsearch 8.15.5 full CRUD, exact read operations, caller hit/byte failure checks and zero residual indices; product-native HTTPS remains explicit boundary |
 | Prometheus | `prometheus://`, `prometheus+http://` | Time series HTTP | metric list, bounded range query with recent-minutes or explicit epoch-ms bounds, and remote write | Exact two-series tagged/timestamped remote-write readback and explicit start/end range against Prometheus 2.55.1 |
+| VictoriaMetrics | `victoriametrics://` | Prometheus-compatible time series HTTP | metric list, bounded range query with recent-minutes or explicit epoch-ms bounds, and guarded remote write | Exact named-product lifecycle against VictoriaMetrics v1.148.0; native APIs, multitenancy and authentication are explicit non-claims |
 
 ## Docker Service Profiles
 
@@ -99,6 +100,7 @@ usable.
 | `./scripts/integration-mq-native-test.sh` | Redis, Redpanda, RabbitMQ, NATS | Native Kafka backend plus messaging regression | Requires `full-native` build |
 | `./scripts/integration-kafka-vendor-test.sh` | Externally supplied AutoMQ, WarpStream, Confluent endpoints | Env-gated native Kafka smoke for ping, topics, produce, detail, and consume; no secrets are committed | Skips when no vendor DSN env vars are supplied |
 | `./scripts/integration-observability-test.sh` | OpenSearch, Dockerfile-built OpenSearch-compatible HTTPS harness, Prometheus | Search, seeded search TLS transport, and time-series workflows | Roughly 1.4 GiB container memory |
+| `./scripts/integration-victoriametrics-test.sh` | VictoriaMetrics | Product-native `victoriametrics://` ping/caps, guarded remote write, measurement catalog, relative/explicit range readback, source timestamps, and exact read budgets | `0.25` CPU / `256m`; opt-in local-heavy product profile |
 | `./scripts/integration-opensearch-security-test.sh` | OpenSearch security plugin | Real OpenSearch HTTPS/basic-auth with generated local CA/node certs and `tls-ca` validation | Roughly 1.5 GiB container memory; opt-in heavy/local-only while CI budget is frozen |
 | `./scripts/integration-elasticsearch-test.sh` | Elasticsearch | Product-native `elasticsearch://` ping/caps, write guard, exact three-document indexing/readback, pagination, limit, truncation, and index listing | Roughly 1.5 GiB container memory; opt-in heavy/local-only while CI budget is frozen |
 | `./scripts/integration-db2-test.sh` | IBM Db2 Community Edition | SQL lifecycle, schema inspection, write guard, alias verification, `db2` subcommand (sequences, routines, tablespaces, foreign-keys, ddl) | Requires IBM Data Server Driver for ODBC at runtime; roughly 4 GiB container memory; startup up to 10 min; opt-in heavy/local-only |
@@ -155,9 +157,10 @@ Their reachability analysis and upstream/API migration requirements are in
 `docs/test-evidence/dependency-security-audit.md`; no baseline or interface PASS
 should be interpreted as a zero-advisory claim.
 
-Design-only candidates such as Oracle, etcd, InfluxDB, VictoriaMetrics, Pulsar,
-MQTT, and RocketMQ do not have registered factories and are not listed as
-implemented backends.
+Design-only candidates such as Oracle, etcd, InfluxDB, Pulsar, MQTT, and
+RocketMQ do not have registered factories and are not listed as implemented
+backends. VictoriaMetrics is implemented only through its tested
+Prometheus-compatible surface.
 
 ## Completion Evidence
 

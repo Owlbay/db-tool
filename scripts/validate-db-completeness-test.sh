@@ -60,7 +60,7 @@ expect_pass baseline "$baseline"
 manifest_missing="$(new_fixture manifest-missing-id)"
 awk '$0 !~ /^DB-SQLITE-001\|/' "$manifest_missing/manifest" >"$manifest_missing/manifest.next"
 mv "$manifest_missing/manifest.next" "$manifest_missing/manifest"
-expect_fail manifest-missing-id "$manifest_missing" "manifest must contain exactly 27 tasks, found 26"
+expect_fail manifest-missing-id "$manifest_missing" "manifest must contain exactly 28 tasks, found 27"
 
 ledger_missing="$(new_fixture ledger-missing-id)"
 awk '$0 !~ /^\| DB-SQLITE-001 \|/' "$ledger_missing/tasks.md" >"$ledger_missing/tasks.next"

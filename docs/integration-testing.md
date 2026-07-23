@@ -447,6 +447,19 @@ loads seed documents from
 short-lived local CA under `.tmp/`, and validates the `opensearch+https://` path
 with the `tls-ca` DSN parameter.
 
+VictoriaMetrics uses a separate lightweight named-product profile:
+
+```bash
+./scripts/integration-victoriametrics-test.sh
+```
+
+The script starts the pinned VictoriaMetrics single-node image, validates the
+`victoriametrics://` product kind, guarded Prometheus remote write,
+measurement catalog, relative and explicit range queries, source timestamps,
+and sample/series/byte budgets, then removes its container, network, and
+storage. This does not claim VictoriaMetrics-native import/export,
+multitenancy, clustering, or authenticated `vmauth` routing.
+
 OpenSearch security-plugin TLS coverage uses a separate heavier profile:
 
 ```bash
@@ -755,6 +768,7 @@ Live integration jobs are opt-in from the GitHub Actions **Run workflow** button
 - `run_live_messaging_native` can run `./scripts/integration-mq-native-test.sh` when native Kafka coverage is desired.
 - `run_live_kafka_vendors` can run `./scripts/integration-kafka-vendor-test.sh` when vendor DSNs are supplied through repository secrets.
 - `run_live_observability` runs `./scripts/integration-observability-test.sh` for OpenSearch and Prometheus.
+- VictoriaMetrics currently runs through the local `victoriametrics` suite phase; no hosted live job is claimed.
 - `run_live_opensearch_security` runs `./scripts/integration-opensearch-security-test.sh` for real OpenSearch security-plugin HTTPS/basic-auth coverage.
 - `run_live_elasticsearch` runs `./scripts/integration-elasticsearch-test.sh` for product-native Elasticsearch coverage.
 
@@ -804,6 +818,7 @@ The compose file applies conservative defaults:
 - OpenSearch: `1.00` CPU, `1g` memory, JVM heap `256m`
 - OpenSearch-compatible HTTPS harness: `0.25` CPU, `128m` memory
 - Prometheus: `0.25` CPU, `256m` memory
+- VictoriaMetrics: `0.25` CPU, `256m` memory
 
 Override with variables such as `DBTOOL_IT_MYSQL_MEMORY=1g` or `DBTOOL_IT_REDIS_MAXMEMORY=64mb`.
 

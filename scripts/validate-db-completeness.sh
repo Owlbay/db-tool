@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MANIFEST="${DBTOOL_COMPLETENESS_MANIFEST:-$ROOT/testdata/db-completeness.manifest}"
 TASKS="${DBTOOL_COMPLETENESS_TASKS:-$ROOT/docs/db-completeness-tasks.md}"
-EXPECTED_TASK_COUNT=27
+EXPECTED_TASK_COUNT=28
 
 fail() {
   echo "db completeness validation failed: $*" >&2
