@@ -150,11 +150,13 @@ struct PrometheusHttpClient {
 impl PrometheusHttpClient {
     fn from_dsn(dsn: &Dsn) -> Result<Self> {
         let url = Url::parse(&dsn.raw).map_err(|e| Error::Dsn(format!("invalid URL: {e}")))?;
-        match url.scheme() {
-            "prometheus" | "prometheus+http" => {}
+        let scheme = url.scheme();
+        match scheme {
+            "prometheus" | "prometheus+http" | "victoriametrics" => {}
             scheme => {
                 return Err(Error::Dsn(format!(
-                    "time-series DSN must use prometheus:// or prometheus+http://, got {scheme}"
+                    "time-series DSN must use prometheus://, prometheus+http://, or \
+                     victoriametrics://, got {scheme}"
                 )))
             }
         }
@@ -163,7 +165,11 @@ impl PrometheusHttpClient {
             .host_str()
             .ok_or_else(|| Error::Dsn("prometheus DSN requires a host".into()))?
             .to_owned();
-        let port = url.port().unwrap_or(9090);
+        let port = url.port().unwrap_or(if scheme == "victoriametrics" {
+            8428
+        } else {
+            9090
+        });
         let username = percent_decode(url.username())?;
         let password = url
             .password()
@@ -1888,6 +1894,18 @@ mod tests {
         assert!(request.contains("end=1710000060"));
         assert!(request.contains("step=30s"));
         assert!(body.is_empty());
+    }
+
+    #[test]
+    fn accepts_victoriametrics_with_its_product_default_port() {
+        let client = PrometheusHttpClient::from_dsn(
+            &Dsn::parse("victoriametrics://vm.local?step=5s").unwrap(),
+        )
+        .unwrap();
+
+        assert_eq!(client.host, "vm.local");
+        assert_eq!(client.port, 8428);
+        assert_eq!(client.step, "5s");
     }
 
     #[test]

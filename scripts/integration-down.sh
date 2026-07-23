@@ -21,6 +21,7 @@ docker compose \
   --profile tidb-secure \
   --profile tidb-tiproxy \
   --profile observability \
+  --profile victoriametrics \
   --profile opensearch-security \
   --profile elasticsearch \
   --profile elasticsearch-https \

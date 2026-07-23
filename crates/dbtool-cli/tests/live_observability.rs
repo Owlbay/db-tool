@@ -23,6 +23,10 @@ fn opensearch_security_integration_enabled() -> bool {
     env::var("DBTOOL_RUN_OPENSEARCH_SECURITY_INTEGRATION").as_deref() == Ok("1")
 }
 
+fn victoriametrics_integration_enabled() -> bool {
+    env::var("DBTOOL_RUN_VICTORIAMETRICS_INTEGRATION").as_deref() == Ok("1")
+}
+
 fn dbtool(args: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_dbtool"))
         .args(args)
@@ -709,11 +713,25 @@ fn prometheus_live_measurements_and_query() {
     }
 
     let dsn = required_env("DBTOOL_IT_PROMETHEUS_DSN");
+    run_prometheus_compatible_lifecycle(&dsn, "prometheus");
+}
+
+#[test]
+fn victoriametrics_live_measurements_and_query() {
+    if !victoriametrics_integration_enabled() {
+        return;
+    }
+
+    let dsn = required_env("DBTOOL_IT_VICTORIAMETRICS_DSN");
+    run_prometheus_compatible_lifecycle(&dsn, "victoriametrics");
+}
+
+fn run_prometheus_compatible_lifecycle(dsn: &str, expected_kind: &str) {
     let ping = stdout_json(dbtool(&["--dsn", &dsn, "ping"]));
-    assert_eq!(ping["kind"], "prometheus");
+    assert_eq!(ping["kind"], expected_kind);
 
     let caps = stdout_json(dbtool(&["--dsn", &dsn, "caps"]));
-    assert_eq!(caps["kind"], "prometheus");
+    assert_eq!(caps["kind"], expected_kind);
     assert_eq!(caps["data"]["time_series"], true);
     assert!(caps["data"]["operations"]
         .as_array()
@@ -911,7 +929,7 @@ fn prometheus_live_measurements_and_query() {
     assert_eq!(byte_limited["error"]["code"], "READ_BUDGET_EXCEEDED");
 
     // TimeSeriesStore intentionally exposes no public delete operation. The
-    // unique metric and disposable Prometheus volume bound test data cleanup.
+    // unique metric and disposable product volume bound test data cleanup.
 }
 
 fn expected_prometheus_sample(

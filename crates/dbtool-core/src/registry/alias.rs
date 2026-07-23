@@ -16,7 +16,7 @@ pub const PROTOCOL_ALIASES: &[(&str, &[&str])] = &[
         "opensearch",
         &["elasticsearch", "opensearch+https", "elasticsearch+https"],
     ),
-    ("prometheus", &["prometheus+http"]),
+    ("prometheus", &["prometheus+http", "victoriametrics"]),
     ("amqp", &["amqps"]),
     ("nats", &["nats+tls"]),
 ];
@@ -53,6 +53,7 @@ mod tests {
         assert_eq!(canonical_scheme("opensearch+https"), "opensearch");
         assert_eq!(canonical_scheme("elasticsearch+https"), "opensearch");
         assert_eq!(canonical_scheme("prometheus+http"), "prometheus");
+        assert_eq!(canonical_scheme("victoriametrics"), "prometheus");
         assert_eq!(canonical_scheme("ibmdb2"), "db2");
         assert_eq!(canonical_scheme("as400"), "db2");
     }

@@ -39,6 +39,7 @@ HEAVY_PHASES=(
   messaging-native
   messaging-tls
   observability
+  victoriametrics
   opensearch-security
   elasticsearch
   elasticsearch-https
@@ -56,6 +57,7 @@ LOCAL_HEAVY_PHASES=(
   messaging-native
   messaging-tls
   observability
+  victoriametrics
   opensearch-security
   elasticsearch
   elasticsearch-https
@@ -92,7 +94,7 @@ Heavy phases:
 Local-heavy phases (serial, 2 CPU / 8 GiB safe):
   dbtool-image compat-extra cassandra scylla cassandra-fixture messaging
   messaging-native messaging-tls observability opensearch-security elasticsearch
-  elasticsearch-https
+  victoriametrics elasticsearch-https
 EOF
 }
 
@@ -134,6 +136,7 @@ phase_description() {
     messaging-native) echo "native librdkafka plus messaging regression workflows" ;;
     messaging-tls) echo "AMQPS and NATS TLS workflows" ;;
     observability) echo "OpenSearch/TLS search and Prometheus workflows" ;;
+    victoriametrics) echo "VictoriaMetrics Prometheus-compatible time-series workflows" ;;
     opensearch-security) echo "OpenSearch security-plugin HTTPS/basic-auth workflows" ;;
     elasticsearch) echo "product-native Elasticsearch search workflows" ;;
     elasticsearch-https) echo "product-native Elasticsearch HTTPS/basic-auth workflows" ;;
@@ -223,6 +226,7 @@ run_phase() {
     messaging-native) "$ROOT/scripts/integration-mq-native-test.sh" ;;
     messaging-tls) "$ROOT/scripts/integration-mq-tls-test.sh" ;;
     observability) "$ROOT/scripts/integration-observability-test.sh" ;;
+    victoriametrics) "$ROOT/scripts/integration-victoriametrics-test.sh" ;;
     opensearch-security) "$ROOT/scripts/integration-opensearch-security-test.sh" ;;
     elasticsearch) "$ROOT/scripts/integration-elasticsearch-test.sh" ;;
     elasticsearch-https) "$ROOT/scripts/integration-elasticsearch-https-test.sh" ;;

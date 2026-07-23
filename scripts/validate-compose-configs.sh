@@ -27,6 +27,7 @@ run_config "tidb-tiproxy" --profile tidb-secure --profile tidb-tiproxy
 run_config "messaging" --profile messaging
 run_config "messaging-tls" --profile messaging-tls
 run_config "observability" --profile observability
+run_config "victoriametrics" --profile victoriametrics
 run_config "opensearch-security" --profile opensearch-security
 run_config "elasticsearch" --profile elasticsearch
 run_config "elasticsearch-https" --profile elasticsearch-https
