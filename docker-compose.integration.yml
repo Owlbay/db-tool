@@ -847,6 +847,36 @@ services:
     cpus: ${DBTOOL_IT_ELASTICSEARCH_CPUS:-1.00}
     mem_limit: ${DBTOOL_IT_ELASTICSEARCH_MEMORY:-1536m}
 
+  elasticsearch-https:
+    profiles: ["elasticsearch-https"]
+    image: docker.elastic.co/elasticsearch/elasticsearch:${DBTOOL_IT_ELASTICSEARCH_VERSION:-8.15.5@sha256:8870d5b7b86235fa790c9112464f5fd3b693f89d73e757a630f8b5cda350f95b}
+    container_name: ${DBTOOL_IT_PROJECT:-dbtool-it}-elasticsearch-https
+    environment:
+      discovery.type: single-node
+      ELASTIC_PASSWORD: ${DBTOOL_IT_ELASTICSEARCH_HTTPS_PASSWORD:-DbtoolElastic1!}
+      xpack.security.enabled: "true"
+      xpack.security.http.ssl.enabled: "true"
+      xpack.security.http.ssl.key: dbtool-certs/node-key.pem
+      xpack.security.http.ssl.certificate: dbtool-certs/node.pem
+      xpack.security.http.ssl.certificate_authorities: dbtool-certs/ca.pem
+      xpack.security.transport.ssl.enabled: "false"
+      ES_JAVA_OPTS: ${DBTOOL_IT_ELASTICSEARCH_JAVA_OPTS:--Xms512m -Xmx512m}
+    volumes:
+      - ${DBTOOL_IT_ELASTICSEARCH_HTTPS_DIR:-.tmp/dbtool-it-elasticsearch-https}/certs:/usr/share/elasticsearch/config/dbtool-certs:ro
+    ports:
+      - "127.0.0.1:${DBTOOL_IT_ELASTICSEARCH_HTTPS_PORT:-19204}:9200"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsSk -u elastic:${DBTOOL_IT_ELASTICSEARCH_HTTPS_PASSWORD:-DbtoolElastic1!} https://127.0.0.1:9200/_cluster/health >/dev/null || exit 1",
+        ]
+      interval: 5s
+      timeout: 10s
+      retries: 80
+    cpus: ${DBTOOL_IT_ELASTICSEARCH_CPUS:-1.00}
+    mem_limit: ${DBTOOL_IT_ELASTICSEARCH_MEMORY:-1536m}
+
   kafka:
     profiles: ["messaging"]
     image: redpandadata/redpanda:v24.3.6@sha256:04baa40ed34edf86028396f762be802f3b6b0acaab65e9de696a3f15d54c550f

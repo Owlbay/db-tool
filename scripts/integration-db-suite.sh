@@ -41,8 +41,24 @@ HEAVY_PHASES=(
   observability
   opensearch-security
   elasticsearch
+  elasticsearch-https
   kafka-vendors
   redshift
+)
+
+LOCAL_HEAVY_PHASES=(
+  dbtool-image
+  compat-extra
+  cassandra
+  scylla
+  cassandra-fixture
+  messaging
+  messaging-native
+  messaging-tls
+  observability
+  opensearch-security
+  elasticsearch
+  elasticsearch-https
 )
 
 ALL_PHASES=("${DEFAULT_PHASES[@]}" "${HEAVY_PHASES[@]}")
@@ -53,7 +69,8 @@ Run dbtool's local database verification suite.
 
 Environment:
   DBTOOL_IT_DB_SUITE_PHASES       Space or comma separated phase list.
-                                  Aliases: default, heavy, all, quick.
+                                  Aliases: default, local-heavy, heavy, all,
+                                  quick.
                                   Default: default phases.
   DBTOOL_IT_DB_SUITE_INCLUDE_HEAVY=1
                                   Run default + heavy phases when
@@ -70,7 +87,12 @@ Heavy phases:
   dbtool-image compat-extra sqlserver db2 cassandra scylla cassandra-fixture tidb-secure
   tidb-ha tidb-pd tidb-pd-leader tidb-tikv-boundary tidb-cert
   tidb-logical-roundtrip tidb-tiproxy messaging messaging-native messaging-tls
-  observability opensearch-security elasticsearch kafka-vendors redshift
+  observability opensearch-security elasticsearch elasticsearch-https kafka-vendors redshift
+
+Local-heavy phases (serial, 2 CPU / 8 GiB safe):
+  dbtool-image compat-extra cassandra scylla cassandra-fixture messaging
+  messaging-native messaging-tls observability opensearch-security elasticsearch
+  elasticsearch-https
 EOF
 }
 
@@ -114,6 +136,7 @@ phase_description() {
     observability) echo "OpenSearch/TLS search and Prometheus workflows" ;;
     opensearch-security) echo "OpenSearch security-plugin HTTPS/basic-auth workflows" ;;
     elasticsearch) echo "product-native Elasticsearch search workflows" ;;
+    elasticsearch-https) echo "product-native Elasticsearch HTTPS/basic-auth workflows" ;;
     kafka-vendors) echo "env-gated external AutoMQ/WarpStream/Confluent smoke" ;;
     redshift) echo "env-gated external Redshift SQL compatibility smoke" ;;
     *) return 1 ;;
@@ -150,6 +173,7 @@ expand_phase_token() {
 
   case "$token" in
     default) append_phases "${DEFAULT_PHASES[@]}" ;;
+    local-heavy) append_phases "${LOCAL_HEAVY_PHASES[@]}" ;;
     heavy) append_phases "${HEAVY_PHASES[@]}" ;;
     all) append_phases "${ALL_PHASES[@]}" ;;
     quick) append_phases compose-config service-free base flow-control ;;
@@ -201,6 +225,7 @@ run_phase() {
     observability) "$ROOT/scripts/integration-observability-test.sh" ;;
     opensearch-security) "$ROOT/scripts/integration-opensearch-security-test.sh" ;;
     elasticsearch) "$ROOT/scripts/integration-elasticsearch-test.sh" ;;
+    elasticsearch-https) "$ROOT/scripts/integration-elasticsearch-https-test.sh" ;;
     kafka-vendors) "$ROOT/scripts/integration-kafka-vendor-test.sh" ;;
     redshift) "$ROOT/scripts/integration-redshift-test.sh" ;;
     *)

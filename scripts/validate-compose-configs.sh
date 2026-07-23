@@ -29,5 +29,6 @@ run_config "messaging-tls" --profile messaging-tls
 run_config "observability" --profile observability
 run_config "opensearch-security" --profile opensearch-security
 run_config "elasticsearch" --profile elasticsearch
+run_config "elasticsearch-https" --profile elasticsearch-https
 
 echo "compose config validation passed"

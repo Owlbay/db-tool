@@ -15,6 +15,10 @@ fn elasticsearch_integration_enabled() -> bool {
     env::var("DBTOOL_RUN_ELASTICSEARCH_INTEGRATION").as_deref() == Ok("1")
 }
 
+fn elasticsearch_https_integration_enabled() -> bool {
+    env::var("DBTOOL_RUN_ELASTICSEARCH_HTTPS_INTEGRATION").as_deref() == Ok("1")
+}
+
 fn opensearch_security_integration_enabled() -> bool {
     env::var("DBTOOL_RUN_OPENSEARCH_SECURITY_INTEGRATION").as_deref() == Ok("1")
 }
@@ -182,6 +186,22 @@ fn elasticsearch_native_live_index_search_and_list() {
 }
 
 #[test]
+fn elasticsearch_https_live_index_search_and_list() {
+    if !elasticsearch_https_integration_enabled() {
+        return;
+    }
+
+    let dsn = required_env("DBTOOL_IT_ELASTICSEARCH_HTTPS_DSN");
+    assert_elasticsearch_https_rejects_bad_credentials_and_missing_ca();
+    run_search_lifecycle(
+        &dsn,
+        "elasticsearch+https",
+        "dbtool_it_elasticsearch_https",
+        true,
+    );
+}
+
+#[test]
 fn opensearch_security_tls_live_index_search_and_list() {
     if !opensearch_security_integration_enabled() {
         return;
@@ -206,6 +226,27 @@ fn assert_opensearch_security_rejects_bad_credentials_and_missing_ca() {
         .is_some_and(|message| message.contains("HTTP 401")));
 
     let missing_ca = format!("opensearch+https://admin:{password}@127.0.0.1:{port}");
+    let rejected_trust = stderr_json(dbtool(&["--dsn", &missing_ca, "ping"]));
+    assert_eq!(rejected_trust["error"]["code"], "CONNECTION_ERROR");
+    assert!(rejected_trust["error"]["message"]
+        .as_str()
+        .is_some_and(|message| message.contains("certificate")));
+}
+
+fn assert_elasticsearch_https_rejects_bad_credentials_and_missing_ca() {
+    let port = required_env("DBTOOL_IT_ELASTICSEARCH_HTTPS_PORT");
+    let password = required_env("DBTOOL_IT_ELASTICSEARCH_HTTPS_PASSWORD");
+    let ca = required_env("DBTOOL_IT_ELASTICSEARCH_HTTPS_CA");
+
+    let wrong_password =
+        format!("elasticsearch+https://elastic:Wrong9!Credential@127.0.0.1:{port}?tls-ca={ca}");
+    let rejected_auth = stderr_json(dbtool(&["--dsn", &wrong_password, "ping"]));
+    assert_eq!(rejected_auth["error"]["code"], "QUERY_ERROR");
+    assert!(rejected_auth["error"]["message"]
+        .as_str()
+        .is_some_and(|message| message.contains("HTTP 401")));
+
+    let missing_ca = format!("elasticsearch+https://elastic:{password}@127.0.0.1:{port}");
     let rejected_trust = stderr_json(dbtool(&["--dsn", &missing_ca, "ping"]));
     assert_eq!(rejected_trust["error"]["code"], "CONNECTION_ERROR");
     assert!(rejected_trust["error"]["message"]

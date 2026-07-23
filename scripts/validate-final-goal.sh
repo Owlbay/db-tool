@@ -167,6 +167,7 @@ require_pattern "scripts/integration-data-roundtrip-test.sh" "import kv"
 require_pattern "scripts/integration-data-roundtrip-test.sh" "export doc"
 require_pattern "scripts/integration-data-roundtrip-test.sh" "import doc"
 require_pattern "docker-compose.integration.yml" 'profiles: ["elasticsearch"]'
+require_pattern "docker-compose.integration.yml" 'profiles: ["elasticsearch-https"]'
 require_pattern "docker-compose.integration.yml" 'profiles: ["opensearch-security"]'
 require_pattern "scripts/validate-compose-configs.sh" "elasticsearch"
 require_pattern "scripts/validate-compose-configs.sh" "opensearch-security"
@@ -175,8 +176,10 @@ require_pattern "scripts/integration-db-suite.sh" "opensearch-security"
 require_pattern ".github/workflows/ci.yml" "run_live_elasticsearch"
 require_pattern ".github/workflows/ci.yml" "run_live_opensearch_security"
 require_pattern "crates/dbtool-cli/tests/live_observability.rs" "elasticsearch_native_live_index_search_and_list"
+require_pattern "crates/dbtool-cli/tests/live_observability.rs" "elasticsearch_https_live_index_search_and_list"
 require_pattern "crates/dbtool-cli/tests/live_observability.rs" "opensearch_security_tls_live_index_search_and_list"
 require_pattern "scripts/integration-opensearch-security-prepare.sh" "DBTOOL_IT_OPENSEARCH_SECURITY_DSN"
+require_pattern "scripts/integration-elasticsearch-https-prepare.sh" "DBTOOL_IT_ELASTICSEARCH_HTTPS_DSN"
 require_pattern "crates/adapter-kafka/src/backend/rdkafka_backend.rs" "sasl.username"
 require_pattern "crates/adapter-kafka/src/backend/rdkafka_backend.rs" "security.protocol"
 require_pattern "scripts/integration-kafka-vendor-test.sh" "DBTOOL_IT_AUTOMQ_DSN"

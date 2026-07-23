@@ -23,4 +23,5 @@ docker compose \
   --profile observability \
   --profile opensearch-security \
   --profile elasticsearch \
+  --profile elasticsearch-https \
   down -v --remove-orphans
