@@ -7,9 +7,19 @@ use std::{
 };
 
 #[derive(Clone, Copy)]
+enum SqlFamily {
+    Postgres,
+    MySql,
+}
+
+#[derive(Clone, Copy)]
 enum Backend {
     Postgres,
     MySql,
+    MariaDb,
+    Cockroach,
+    Timescale,
+    TiDb,
 }
 
 impl Backend {
@@ -17,6 +27,10 @@ impl Backend {
         match self {
             Self::Postgres => "DBTOOL_IT_POSTGRES_DSN",
             Self::MySql => "DBTOOL_IT_MYSQL_DSN",
+            Self::MariaDb => "DBTOOL_IT_MARIADB_DSN",
+            Self::Cockroach => "DBTOOL_IT_COCKROACH_DSN",
+            Self::Timescale => "DBTOOL_IT_TIMESCALE_DSN",
+            Self::TiDb => "DBTOOL_IT_TIDB_DSN",
         }
     }
 
@@ -24,11 +38,44 @@ impl Backend {
         match self {
             Self::Postgres => "pg",
             Self::MySql => "mysql",
+            Self::MariaDb => "mariadb",
+            Self::Cockroach => "cockroach",
+            Self::Timescale => "timescale",
+            Self::TiDb => "tidb",
+        }
+    }
+
+    fn family(self) -> SqlFamily {
+        match self {
+            Self::Postgres | Self::Cockroach | Self::Timescale => SqlFamily::Postgres,
+            Self::MySql | Self::MariaDb | Self::TiDb => SqlFamily::MySql,
+        }
+    }
+
+    fn integration_enabled(self) -> bool {
+        match self {
+            Self::Postgres | Self::MySql => {
+                standalone_integration_enabled()
+                    || env::var("DBTOOL_RUN_INTEGRATION").as_deref() == Ok("1")
+            }
+            Self::MariaDb => {
+                env::var("DBTOOL_RUN_COMPAT_INTEGRATION").as_deref() == Ok("1")
+                    && env::var("DBTOOL_RUN_MARIADB_COMPAT").as_deref() == Ok("1")
+            }
+            Self::Cockroach => {
+                env::var("DBTOOL_RUN_PG_COMPAT_INTEGRATION").as_deref() == Ok("1")
+                    && env::var("DBTOOL_RUN_COCKROACH_COMPAT").as_deref() == Ok("1")
+            }
+            Self::Timescale => {
+                env::var("DBTOOL_RUN_PG_COMPAT_INTEGRATION").as_deref() == Ok("1")
+                    && env::var("DBTOOL_RUN_TIMESCALE_COMPAT").as_deref() == Ok("1")
+            }
+            Self::TiDb => env::var("DBTOOL_RUN_TIDB_INTEGRATION").as_deref() == Ok("1"),
         }
     }
 }
 
-fn integration_enabled() -> bool {
+fn standalone_integration_enabled() -> bool {
     env::var("DBTOOL_RUN_SQL_PARAM_INTEGRATION").as_deref() == Ok("1")
 }
 
@@ -93,15 +140,26 @@ fn unique_table(backend: Backend) -> String {
 fn run_parameter_lifecycle(backend: Backend) {
     let dsn = env::var(backend.env_name())
         .unwrap_or_else(|_| panic!("{} is required", backend.env_name()));
-    let table = unique_table(backend);
-    let create = match backend {
-        Backend::Postgres => format!(
+    let table = match backend {
+        Backend::TiDb => {
+            let database = env::var("DBTOOL_IT_TIDB_DB")
+                .unwrap_or_else(|_| "dbtool_it_tidb".to_owned())
+                .trim()
+                .to_owned();
+            assert!(!database.is_empty(), "DBTOOL_IT_TIDB_DB must not be empty");
+            confirmed_exec(&dsn, &format!("create database if not exists {database}"));
+            format!("{database}.{}", unique_table(backend))
+        }
+        _ => unique_table(backend),
+    };
+    let create = match backend.family() {
+        SqlFamily::Postgres => format!(
             "create table {table} (\
              id bigint primary key, note text not null, score double precision not null, \
              enabled boolean not null, payload bytea not null, optional text, \
              occurred_at timestamptz not null, metadata jsonb not null)"
         ),
-        Backend::MySql => format!(
+        SqlFamily::MySql => format!(
             "create table {table} (\
              id bigint primary key, note text not null, score double not null, \
              enabled boolean not null, payload blob not null, optional text, \
@@ -123,13 +181,13 @@ fn run_parameter_lifecycle(backend: Backend) {
         {"$json": {"source": backend.prefix(), "tags": ["bound", "safe"]}}
     ])
     .to_string();
-    let insert = match backend {
-        Backend::Postgres => format!(
+    let insert = match backend.family() {
+        SqlFamily::Postgres => format!(
             "insert into {table} \
              (id,note,score,enabled,payload,optional,occurred_at,metadata) \
              values ($1,$2,$3,$4,$5,$6,$7,$8)"
         ),
-        Backend::MySql => format!(
+        SqlFamily::MySql => format!(
             "insert into {table} \
              (id,note,score,enabled,payload,optional,occurred_at,metadata) \
              values (?,?,?,?,?,?,?,?)"
@@ -147,15 +205,15 @@ fn run_parameter_lifecycle(backend: Backend) {
     ]));
     assert_eq!(inserted["data"]["rows_affected"], 1);
 
-    let (query, query_params) = match backend {
-        Backend::Postgres => (
+    let (query, query_params) = match backend.family() {
+        SqlFamily::Postgres => (
             format!(
                 "select id,note,score,enabled,payload,optional,occurred_at,metadata \
                  from {table} where id=$1 and note=$2"
             ),
             serde_json::json!([7, injection]).to_string(),
         ),
-        Backend::MySql => (
+        SqlFamily::MySql => (
             format!(
                 "select id,note,score,enabled,payload,optional,occurred_at,metadata \
                  from {table} where id=? and note=?"
@@ -186,10 +244,23 @@ fn run_parameter_lifecycle(backend: Backend) {
         serde_json::from_value::<CoreValue>(row[6].clone()).unwrap(),
         CoreValue::Timestamp(timestamp)
     );
-    assert_eq!(
-        serde_json::from_value::<CoreValue>(row[7].clone()).unwrap(),
-        CoreValue::Json(serde_json::json!({"source": backend.prefix(), "tags": ["bound", "safe"]}))
-    );
+    let expected_json = serde_json::json!({"source": backend.prefix(), "tags": ["bound", "safe"]});
+    let metadata = serde_json::from_value::<CoreValue>(row[7].clone()).unwrap();
+    if matches!(backend, Backend::MariaDb) {
+        // MariaDB implements JSON as a LONGTEXT alias and reports the column
+        // through the MySQL wire protocol as binary/text rather than the
+        // native MYSQL_TYPE_JSON used by MySQL. Preserve that lossless wire
+        // value instead of guessing that arbitrary bytes are JSON.
+        let CoreValue::Bytes(bytes) = metadata else {
+            panic!("MariaDB JSON alias should remain a lossless byte value");
+        };
+        assert_eq!(
+            serde_json::from_slice::<serde_json::Value>(&bytes).unwrap(),
+            expected_json
+        );
+    } else {
+        assert_eq!(metadata, CoreValue::Json(expected_json));
+    }
 
     let count = stdout_json(dbtool(&[
         "--dsn",
@@ -205,14 +276,42 @@ fn run_parameter_lifecycle(backend: Backend) {
 
 #[test]
 fn postgres_live_binds_every_sql_parameter_type() {
-    if integration_enabled() {
+    if Backend::Postgres.integration_enabled() {
         run_parameter_lifecycle(Backend::Postgres);
     }
 }
 
 #[test]
 fn mysql_live_binds_every_sql_parameter_type() {
-    if integration_enabled() {
+    if Backend::MySql.integration_enabled() {
         run_parameter_lifecycle(Backend::MySql);
+    }
+}
+
+#[test]
+fn mariadb_live_binds_every_sql_parameter_type() {
+    if Backend::MariaDb.integration_enabled() {
+        run_parameter_lifecycle(Backend::MariaDb);
+    }
+}
+
+#[test]
+fn cockroach_live_binds_every_sql_parameter_type() {
+    if Backend::Cockroach.integration_enabled() {
+        run_parameter_lifecycle(Backend::Cockroach);
+    }
+}
+
+#[test]
+fn timescale_live_binds_every_sql_parameter_type() {
+    if Backend::Timescale.integration_enabled() {
+        run_parameter_lifecycle(Backend::Timescale);
+    }
+}
+
+#[test]
+fn tidb_live_binds_every_sql_parameter_type() {
+    if Backend::TiDb.integration_enabled() {
+        run_parameter_lifecycle(Backend::TiDb);
     }
 }

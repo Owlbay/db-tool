@@ -598,7 +598,7 @@ fn vendor_kafka_compatible_smoke_profiles() {
     let mut tested = 0;
     for (env_name, expected_kind, prefix, payload) in vendors {
         if let Some(dsn) = dsn(env_name) {
-            run_kafka_smoke(&dsn, expected_kind, prefix, payload, false);
+            run_kafka_smoke(&dsn, expected_kind, prefix, payload, true);
             tested += 1;
         }
     }

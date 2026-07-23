@@ -13,4 +13,5 @@ fi
 export DBTOOL_RUN_INTEGRATION=1
 
 cargo test -p dbtool-cli --test live_services -- --nocapture
+cargo test -p dbtool-cli --test live_sql_params -- --nocapture
 cargo test -p dbtool-cli --test bounded_sql live_streams_one_probe_row_for_large_results -- --nocapture

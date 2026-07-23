@@ -4,15 +4,22 @@ Task: IF-T43
 
 Result: LIVE_PASS
 
-Run at (UTC): 2026-07-15T17:02:40Z
+Run at (UTC): 2026-07-23T17:59:29Z (named-product parameter refresh;
+original PostgreSQL/MySQL run 2026-07-15T17:02:40Z)
 
-Environment: Docker on macOS arm64; PostgreSQL 16; MySQL 8.4; SQLite in-process
+Environment: Docker on macOS arm64; PostgreSQL 16.14; MySQL 8.4.9;
+MariaDB 11.4.12; CockroachDB 24.3.8; TimescaleDB 2.17.2/PostgreSQL 16;
+TiDB 8.5.6; SQLite in-process
 
 Commands:
 
 - `cargo test -p adapter-sql`
 - `cargo test -p dbtool-cli --test cli_json`
 - `DBTOOL_RUN_SQL_PARAM_INTEGRATION=1 cargo test -p dbtool-cli --test live_sql_params -- --nocapture`
+- `./scripts/integration-test.sh`
+- `./scripts/integration-compat-test.sh`
+- `./scripts/integration-pg-compat-test.sh`
+- `./scripts/integration-tidb-test.sh`
 
 ## Per-table operations
 
@@ -34,6 +41,10 @@ Every lifecycle used the same logical columns and values:
 | SQLite `bound_values` | six-column service-free table PASS | Null/Bool/Int/Float/Text/Bytes PASS; tagged timestamp/JSON query PASS | every scalar/blob/null value exact PASS | injection-shaped note returned verbatim; table remained PASS | count=1 PASS | temporary DB directory removed PASS |
 | PostgreSQL `dbtool_it_pg_params_<run>` | bigint/text/double/bool/bytea/text/timestamptz/jsonb PASS | all eight parameter types through `$1..$8` PASS | all eight values, including exact timestamp and parsed JSON, PASS | note matched through a second bound parameter; count remained 1 PASS | count=1 PASS | public confirmed DROP PASS; prefix remaining=0 |
 | MySQL `dbtool_it_mysql_params_<run>` | bigint/text/double/bool/blob/text/datetime(3)/json PASS | all eight parameter types through `?` PASS | all eight values, including bool, exact timestamp and parsed JSON, PASS | note matched through a second bound parameter; count remained 1 PASS | count=1 PASS | public confirmed DROP PASS; prefix remaining=0 |
+| MariaDB `dbtool_it_mariadb_params_<run>` | bigint/text/double/bool/blob/text/datetime(3)/JSON alias PASS | all eight parameter values through `?` PASS | scalar/blob/null/timestamp exact; MariaDB reported JSON-alias content as lossless bytes and the test parsed those exact bytes back to the expected object PASS | injection-shaped note returned verbatim; count remained 1 PASS | count=1 PASS | public confirmed DROP PASS |
+| CockroachDB `dbtool_it_cockroach_params_<run>` | PostgreSQL-compatible typed table PASS | all eight parameter types through `$1..$8` PASS | all eight values, including exact timestamp and JSON, PASS | injection-shaped note matched through a bound parameter PASS | count=1 PASS | public confirmed DROP PASS |
+| TimescaleDB `dbtool_it_timescale_params_<run>` | PostgreSQL-compatible typed table PASS | all eight parameter types through `$1..$8` PASS | all eight values, including exact timestamp and JSON, PASS | injection-shaped note matched through a bound parameter PASS | count=1 PASS | public confirmed DROP PASS |
+| TiDB `dbtool_it_tidb.dbtool_it_tidb_params_<run>` | MySQL-compatible typed table PASS | all eight parameter types through `?` PASS | all eight values, including exact timestamp and JSON, PASS | injection-shaped note matched through a bound parameter PASS | count=1 PASS | public confirmed DROP PASS |
 
 The first MySQL run used an overly narrow test expectation (`1` instead of the
 adapter's more precise `true`) after the database operations had succeeded. Its
@@ -43,3 +54,6 @@ reported zero remaining PostgreSQL and MySQL test tables.
 
 Unsupported boundary: SQL Server, Db2, and Cassandra still reject non-empty
 dynamic parameter arrays explicitly. No adapter silently discards parameters.
+MariaDB's `JSON` alias is not advertised by its wire metadata as MySQL's native
+JSON type, so dbtool preserves the returned bytes instead of guessing from
+content; the product test verifies their exact JSON meaning.
