@@ -142,7 +142,7 @@ assert_json_predicate "$mysql_people" 'data["data"]["rows"] == [[1,"alice","read
 echo "dbtool fixture smoke: seeding Redis from $redis_seed"
 seed_redis_commands "$redis_seed"
 redis_values="$(run_dbtool --dsn "$DBTOOL_IT_REDIS_DSN" kv raw MGET dbtool_it_fixture:user:1 dbtool_it_fixture:user:2 dbtool_it_fixture:user:3)"
-assert_json_predicate "$redis_values" 'data["data"] == ["alice","bob","carol"]'
+assert_json_predicate "$redis_values" 'data["data"]["$dbtool"] == {"type":"array","codec":"dbtool-value-v2","value":["alice","bob","carol"]}'
 redis_keys="$(run_dbtool --dsn "$DBTOOL_IT_REDIS_DSN" --limit 3 kv scan "dbtool_it_fixture:user:*")"
 assert_json_predicate "$redis_keys" 'len(data["data"]) == 3'
 

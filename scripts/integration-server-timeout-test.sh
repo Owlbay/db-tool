@@ -279,8 +279,10 @@ pg_lock_pid=$!
 sleep "$pg_lock_ready_sleep"
 
 pg_lock_error="$(
+  # The UPDATE reached the server and then timed out while waiting for the
+  # lock, so callers must inspect state instead of treating it as retryable.
   expect_error_code \
-    QUERY_ERROR \
+    OUTCOME_INDETERMINATE \
     --dsn "$DBTOOL_IT_POSTGRES_DSN" \
     --request-timeout "${DBTOOL_IT_SERVER_TIMEOUT_CLIENT_REQUEST_TIMEOUT:-5s}" \
     --deadline "${DBTOOL_IT_SERVER_TIMEOUT_CLIENT_DEADLINE:-10s}" \
@@ -314,8 +316,10 @@ mysql_lock_pid=$!
 sleep "$mysql_lock_ready_sleep"
 
 mysql_timeout_error="$(
+  # As with PostgreSQL, a lock-wait timeout follows mutation dispatch and the
+  # remote outcome is conservatively non-retryable.
   expect_error_code \
-    QUERY_ERROR \
+    OUTCOME_INDETERMINATE \
     --dsn "$DBTOOL_IT_MYSQL_DSN" \
     --request-timeout "${DBTOOL_IT_SERVER_TIMEOUT_CLIENT_REQUEST_TIMEOUT:-5s}" \
     --deadline "${DBTOOL_IT_SERVER_TIMEOUT_CLIENT_DEADLINE:-10s}" \

@@ -213,7 +213,7 @@ redis_import="$(run_dbtool \
   --key-prefix "dbtool_it_roundtrip:user:")"
 assert_json_predicate "$redis_import" 'data["data"]["restored"] == 3 and data["data"]["expired_skipped"] == 0 and data["data"]["per_entry_atomic"] is True and data["data"]["expiry_preserved"] is True'
 redis_roundtrip="$(run_dbtool --dsn "$DBTOOL_IT_REDIS_DSN" kv raw MGET dbtool_it_roundtrip:user:1 dbtool_it_roundtrip:user:2 dbtool_it_roundtrip:user:3)"
-assert_json_predicate "$redis_roundtrip" 'data["data"] == ["alice","bob","carol"]'
+assert_json_predicate "$redis_roundtrip" 'data["data"]["$dbtool"] == {"type":"array","codec":"dbtool-value-v2","value":["alice","bob","carol"]}'
 redis_roundtrip_keys="$(run_dbtool --dsn "$DBTOOL_IT_REDIS_DSN" --limit 3 kv scan "dbtool_it_roundtrip:user:*")"
 assert_json_predicate "$redis_roundtrip_keys" 'len(data["data"]) == 3'
 for key in dbtool_it_roundtrip:user:1 dbtool_it_roundtrip:user:2 dbtool_it_roundtrip:user:3; do

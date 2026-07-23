@@ -206,9 +206,10 @@ async fn rabbit_management_detail_has_transport_and_complete_object_bounds() {
             ..
         })
     ));
-    // RabbitMQ's management statistics are populated asynchronously after an
-    // AMQP declaration. Retry only that documented transient shape; every
-    // other adapter error remains an immediate failure.
+    // RabbitMQ publishes a newly declared AMQP queue to the management API
+    // asynchronously: it can briefly return 404, then expose the queue before
+    // its statistics fields are populated. Retry only those two documented
+    // transient shapes; every other adapter error remains an immediate failure.
     let mut detail = None;
     for _ in 0..50 {
         match admin
@@ -223,6 +224,9 @@ async fn rabbit_management_detail_has_transport_and_complete_object_bounds() {
                 break;
             }
             Err(Error::Serialization(message)) if message.contains("messages_ready") => {
+                tokio::time::sleep(Duration::from_millis(100)).await;
+            }
+            Err(Error::Query(message)) if message.contains("HTTP 404") => {
                 tokio::time::sleep(Duration::from_millis(100)).await;
             }
             Err(error) => panic!("management queue detail failed: {error}"),

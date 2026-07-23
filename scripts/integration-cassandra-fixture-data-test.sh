@@ -114,10 +114,17 @@ printf '%s' "$all_rows" | python3 -c '
 import json,sys
 data=json.load(sys.stdin)
 rows=sorted(data["data"]["rows"], key=lambda row: row[0])
+typed_array=lambda values: {
+    "$dbtool": {
+        "type": "array",
+        "codec": "dbtool-value-v2",
+        "value": values,
+    }
+}
 assert rows == [
-    [1, "alice", "reader", True, ["cql", "fixture"]],
-    [2, "bob", "writer", False, ["cql", "seed"]],
-    [3, "carol", "reviewer", True, ["cql", "verify"]],
+    [1, "alice", "reader", True, typed_array(["cql", "fixture"])],
+    [2, "bob", "writer", False, typed_array(["cql", "seed"])],
+    [3, "carol", "reviewer", True, typed_array(["cql", "verify"])],
 ], data
 '
 

@@ -673,7 +673,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "test \"$(redis-cli get dbtool:fixture:user:1)\" = alice",
+          "test \"$(redis-cli get dbtool_it_fixture:user:1)\" = alice",
         ]
       interval: 2s
       timeout: 3s

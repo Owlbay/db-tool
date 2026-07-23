@@ -66,7 +66,7 @@ postgres_people="$(
   run_dbtool \
     --dsn "$DBTOOL_IT_POSTGRES_FIXTURE_DSN" \
     --limit 3 \
-    sql query "select name, role from dbtool_fixture_people order by id"
+    sql query "select name, role from dbtool_it_fixture_people order by id"
 )"
 assert_json_field "$postgres_people" "data.rows.0.0" "alice"
 assert_json_field "$postgres_people" "data.rows.2.1" "reviewer"
@@ -76,15 +76,15 @@ mysql_people="$(
   run_dbtool \
     --dsn "$DBTOOL_IT_MYSQL_FIXTURE_DSN" \
     --limit 3 \
-    sql query "select name, role from dbtool_fixture_people order by id"
+    sql query "select name, role from dbtool_it_fixture_people order by id"
 )"
 assert_json_field "$mysql_people" "data.rows.0.0" "alice"
 assert_json_field "$mysql_people" "data.rows.2.1" "reviewer"
 
 echo "dbtool fixture image smoke: verifying Redis baked fixture"
-redis_user="$(run_dbtool --dsn "$DBTOOL_IT_REDIS_FIXTURE_DSN" kv get dbtool:fixture:user:1)"
+redis_user="$(run_dbtool --dsn "$DBTOOL_IT_REDIS_FIXTURE_DSN" kv get dbtool_it_fixture:user:1)"
 assert_json_field "$redis_user" "data.value" "alice"
-redis_keys="$(run_dbtool --dsn "$DBTOOL_IT_REDIS_FIXTURE_DSN" --limit 3 kv scan "dbtool:fixture:user:*")"
+redis_keys="$(run_dbtool --dsn "$DBTOOL_IT_REDIS_FIXTURE_DSN" --limit 3 kv scan "dbtool_it_fixture:user:*")"
 assert_json_predicate "$redis_keys" 'len(data["data"]) == 3'
 
 echo "dbtool fixture image smoke: verifying MongoDB baked fixture"
