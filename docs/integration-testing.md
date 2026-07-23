@@ -41,13 +41,19 @@ Useful selectors:
 
 ```bash
 DBTOOL_IT_DB_SUITE_PHASES=quick ./scripts/integration-db-suite.sh
+DBTOOL_IT_DB_SUITE_PHASES=local-heavy ./scripts/integration-db-suite.sh
 DBTOOL_IT_DB_SUITE_PHASES=heavy ./scripts/integration-db-suite.sh
 DBTOOL_IT_DB_SUITE_PHASES=all ./scripts/integration-db-suite.sh
 DBTOOL_IT_DB_SUITE_DRY_RUN=1 DBTOOL_IT_DB_SUITE_PHASES=all ./scripts/integration-db-suite.sh
 ```
 
 `quick` means Compose config validation, service-free verification, plus the
-base database and flow-control live checks. `heavy` adds opt-in phases such as
+base database and flow-control live checks. `local-heavy` is the serial
+2 CPU / 8 GiB-safe product subset: the dbtool image, compatible KV/SQL aliases,
+Cassandra, ScyllaDB, messaging/TLS, OpenSearch/Prometheus, OpenSearch security
+HTTPS, and Elasticsearch. It intentionally excludes x86_64-only SQL Server,
+host-client-dependent Db2, TiDB HA drills, and credential-gated external
+products. `heavy` adds opt-in phases such as
 the dbtool Docker image smoke, SQL Server, Cassandra, TiDB secure HA drills,
 TiDB TiProxy, Db2, plain/native/TLS messaging, and observability. `all` is the
 union of the default and heavy lists; it no longer omits protocol backends.

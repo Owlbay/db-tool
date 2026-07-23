@@ -78,9 +78,13 @@ expect_fail status-mismatch "$status_mismatch" "status mismatch for DB-SQLITE-00
 
 ledger_extra="$(new_fixture ledger-extra-id)"
 awk '
-  /^## Per-Resource Evidence Contract/ && !inserted {
+  /^## Execution Task Table[[:space:]]*$/ {
+    section = 1
+  }
+  section && /^## / && $0 !~ /^## Execution Task Table[[:space:]]*$/ && !inserted {
     print "| DB-EXTRA-001 | SQL | Fixture `fixture:` | fixture | Ready | BLOCKED | - | test-only boundary |"
     inserted = 1
+    section = 0
   }
   { print }
 ' "$ledger_extra/tasks.md" >"$ledger_extra/tasks.next"

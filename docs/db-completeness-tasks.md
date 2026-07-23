@@ -67,7 +67,7 @@ and test-hardening commits remain listed inside each evidence file.
 | DB-MONGO-001 | Document | MongoDB `mongodb://` | Docker base | Ready | COMPLETE | `docs/test-evidence/mongodb.md` | `83db841`, `ab06b88`, IF-T78 seven exact mutations including `$out/$merge` and zero collection residual |
 | DB-OPENSEARCH-001 | Search | OpenSearch `opensearch://` | Docker observability | Ready | COMPLETE | `docs/test-evidence/opensearch.md` | `3822948`, `4b6b6e2`, IF-T78 five exact mutations, every fixture document read back, zero test indices |
 | DB-OPENSEARCH-TLS-001 | Search | OpenSearch security HTTPS | Docker opensearch-security | Ready | COMPLETE | `docs/test-evidence/opensearch-security.md` | `b9dd9fd`, `e0ce46f`; real plugin CA/auth failures, full CRUD, exact reads, target-bound deletion and public cleanup PASS |
-| DB-ELASTICSEARCH-001 | Search | Elasticsearch `elasticsearch://` | Docker elasticsearch | Ready | COMPLETE | `docs/test-evidence/elasticsearch.md` | `3822948`, `4b6b6e2`, IF-T78 five exact mutations and every fixture document readback; product-native HTTPS not covered |
+| DB-ELASTICSEARCH-001 | Search | Elasticsearch `elasticsearch://`, `elasticsearch+https://` | Docker elasticsearch / elasticsearch-https | Ready | COMPLETE | `docs/test-evidence/elasticsearch.md` | `3822948`, `4b6b6e2`, IF-T78 exact mutations plus 2026-07-24 X-Pack HTTPS/auth/CA refresh |
 | DB-PROMETHEUS-001 | Time series | Prometheus `prometheus://` | Docker observability | Ready | COMPLETE | `docs/test-evidence/prometheus.md` | `3c9c2d4`, IF-T78 exact remote-write and zero-series cleanup refresh |
 | DB-REDIS-MQ-001 | Messaging | Redis Streams/PubSub | Docker messaging | Ready | COMPLETE | `docs/test-evidence/redis-messaging.md` | `d2c88a2`, IF-T48; Redis/Valkey/KeyDB/Dragonfly group replay/XACK matrix, truthful lag negotiation and zero residual Streams passed |
 | DB-KAFKA-001 | Messaging | Kafka API on Redpanda | Docker messaging | Ready | COMPLETE | `docs/test-evidence/kafka-redpanda.md` | `d2c88a2`, `de6b79e`; pure lag `UNSUPPORTED_CAPABILITY`, native committed-offset lag PASS, public topic delete/absence PASS |
@@ -75,6 +75,45 @@ and test-hardening commits remain listed inside each evidence file.
 | DB-NATS-001 | Messaging | NATS Core + JetStream | Docker messaging | Ready | COMPLETE | `docs/test-evidence/nats.md` | `d2c88a2`; Core ephemeral and JetStream delete verified |
 | DB-MQ-TLS-001 | Messaging | AMQPS + NATS TLS | Docker messaging-tls | Ready | COMPLETE | `docs/test-evidence/messaging-tls.md` | `d2c88a2`; regenerated CA-backed TLS passed |
 | DB-KAFKA-VENDORS-001 | Messaging | AutoMQ/WarpStream/Confluent | external | Ready | EXTERNAL | - | no vendor DSNs are supplied |
+
+## 2026-07-24 Support-Depth Audit
+
+The product result above answers whether the named backend completed its
+family checklist. The following matrix records the narrower method-level
+boundaries found while re-auditing the current adapters and runners.
+
+| Backend group | Supported depth | Explicitly unsupported or not yet proven |
+| --- | --- | --- |
+| SQLite, PostgreSQL, MySQL | bounded query/execute, schema/table metadata, typed values, bound parameters, atomic import/rollback, guarded cleanup | no current product gap |
+| MariaDB, TiDB, CockroachDB, TimescaleDB | named-product CRUD, catalogs, typed values, bounds, guarded cleanup and atomic import/rollback; direct bound-parameter product tests are now wired into each Docker runner | MariaDB exposes its `JSON` alias as lossless bytes over the MySQL wire protocol rather than native `MYSQL_TYPE_JSON`; the client does not guess that arbitrary bytes are JSON |
+| SQL Server | bounded generic SQL CRUD/catalog/type operations and guarded cleanup | dynamic parameters and atomic row import are not advertised; local Apple Silicon cannot run the x86_64-only product image |
+| Redshift | PostgreSQL-compatible adapter and external CRUD/type runner exist | live product proof, atomic import and rollback remain external until `DBTOOL_IT_REDSHIFT_DSN` is supplied |
+| Cassandra, ScyllaDB | native CQL plus SQL-compatible CRUD, schema/primary-key metadata, typed values, bounds, guarded cleanup | dynamic parameters are not advertised; current product evidence is single-node |
+| IBM Db2 | adapter, bounded catalogs, CLI surface and service-free exact-budget tests | live SQL/catalog lifecycle is blocked on a supported host-installed IBM 64-bit client |
+| Redis, Valkey, KeyDB, Dragonfly | binary-safe KV reads, TTL/restore, strict SCAN, allowlisted raw commands, exact guarded mutations and cleanup | consumer lag is runtime/product dependent; KeyDB 6.3 does not advertise it |
+| MongoDB | bounded find/aggregate, exact one/many mutations, `$out`/`$merge`, collection drop and cleanup | no current product gap |
+| OpenSearch, Elasticsearch | plain HTTP exact search CRUD, bounded reads/catalogs and guarded index cleanup; OpenSearch security-plugin HTTPS and Elasticsearch X-Pack HTTPS/auth/CA are product-tested | index catalog bounds are client/transport bounds, not server cursor pagination |
+| Prometheus | bounded metric catalog/range query and guarded remote write | public update/delete are not part of the Prometheus model; cleanup uses an integration-only admin path |
+| Redis messaging, Kafka/Redpanda, AMQP/RabbitMQ, NATS | bounded produce/consume, protocol-appropriate ACK/group/admin operations and guarded cleanup; AMQPS and NATS TLS are live-tested | pure Kafka has no group lag; direct AMQP has no portable queue catalog; NATS Core has no durable admin catalog; RabbitMQ management HTTPS is not implemented |
+| AutoMQ, WarpStream, Confluent | native Kafka runner and alias routing exist | product endpoints are external; live evidence must separately prove metadata/cursor fidelity for every supplied vendor |
+
+### Depth-Gap Task Queue
+
+| Task | Priority | Status | Gap / implementation | Verification gate |
+| --- | --- | --- | --- | --- |
+| DB-GAP-SERVER-TIMEOUT-001 | P0 | VERIFIED | server lock-timeout tests expected retryable `QUERY_ERROR` after mutation dispatch; updated PostgreSQL/MySQL assertions to the non-retryable `OUTCOME_INDETERMINATE` contract | `server-timeout` Docker phase PASS |
+| DB-GAP-FIXTURE-CONTRACT-001 | P0 | VERIFIED | Redis/Cassandra fixture scripts used pre-v2 raw-array assertions and fixture-image checks used stale resource names | `fixture-data`, `data-roundtrip`, `fixture-images`, and `cassandra-fixture` Docker phases PASS |
+| DB-GAP-SQL-PARAM-ALIASES-001 | P1 | VERIFIED | MariaDB/TiDB/CockroachDB/TimescaleDB inherited parameter support without direct named-product coverage | six direct `live_sql_params` product tests PASS across base/compat/pg-compat/tidb |
+| DB-GAP-MARIADB-JSON-TYPE-001 | P2 | PROTOCOL_BOUNDARY | MariaDB reports its `JSON` alias as LONGTEXT/binary over the MySQL protocol, so the adapter preserves exact bytes rather than guessing from content | direct parameter test parses the preserved bytes and proves exact JSON content; a future typed upgrade needs reliable origin/schema metadata |
+| DB-GAP-KV-EXACT-ALIASES-001 | P1 | VERIFIED | Valkey/KeyDB/Dragonfly had not rerun the latest exact mutation input-budget contract | focused adapter exact-mutation test PASS 1/1 against each compatible product |
+| DB-GAP-RABBITMQ-MANAGEMENT-RACE-001 | P1 | VERIFIED | an AMQP-declared queue can briefly be absent from the management API before its statistics fields appear | retry only transient HTTP 404 and missing-statistics shapes; full messaging phase PASS |
+| DB-GAP-KAFKA-VENDOR-FIDELITY-001 | P1 | HARNESS_READY / EXTERNAL | vendor smoke skipped key/header/partition/timestamp fidelity | metadata verification is now mandatory; supply each vendor DSN for separate live evidence |
+| DB-GAP-ELASTICSEARCH-HTTPS-001 | P1 | VERIFIED | `elasticsearch+https://` previously had only service-free and shared TLS harness coverage | Elasticsearch 8.15.5 X-Pack HTTPS/basic-auth CRUD, bad-auth, missing-CA and cleanup PASS |
+| DB-GAP-RABBITMQ-MANAGEMENT-HTTPS-001 | P2 | NOT_IMPLEMENTED | `rabbitmq+http://` is admin-only and management TLS has no registered scheme/transport | implement `rabbitmq+https://` without weakening CA/auth validation, then add live management CRUD proof |
+| DB-GAP-LOCAL-RESOURCE-LANES-001 | P2 | VERIFIED | `heavy/all` mixed runnable single-service phases with TiDB HA, x86_64-only and external phases; `local-heavy` now selects only serial 2-CPU/8-GiB-safe product phases | exact dry-run inventory plus every selected local product phase PASS |
+
+Current campaign details and honest non-pass boundaries are recorded in
+[`support-depth-audit-2026-07-24.md`](test-evidence/support-depth-audit-2026-07-24.md).
 
 ## Per-Resource Evidence Contract
 
