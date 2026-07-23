@@ -727,10 +727,10 @@ fn victoriametrics_live_measurements_and_query() {
 }
 
 fn run_prometheus_compatible_lifecycle(dsn: &str, expected_kind: &str) {
-    let ping = stdout_json(dbtool(&["--dsn", &dsn, "ping"]));
+    let ping = stdout_json(dbtool(&["--dsn", dsn, "ping"]));
     assert_eq!(ping["kind"], expected_kind);
 
-    let caps = stdout_json(dbtool(&["--dsn", &dsn, "caps"]));
+    let caps = stdout_json(dbtool(&["--dsn", dsn, "caps"]));
     assert_eq!(caps["kind"], expected_kind);
     assert_eq!(caps["data"]["time_series"], true);
     assert!(caps["data"]["operations"]
@@ -741,7 +741,7 @@ fn run_prometheus_compatible_lifecycle(dsn: &str, expected_kind: &str) {
 
     let blocked = stderr_json(dbtool(&[
         "--dsn",
-        &dsn,
+        dsn,
         "ts",
         "write",
         "dbtool_integration_probe",
@@ -758,7 +758,7 @@ fn run_prometheus_compatible_lifecycle(dsn: &str, expected_kind: &str) {
 
     let first_written = stdout_json(dbtool(&[
         "--dsn",
-        &dsn,
+        dsn,
         "--allow-write",
         "ts",
         "write",
@@ -776,7 +776,7 @@ fn run_prometheus_compatible_lifecycle(dsn: &str, expected_kind: &str) {
 
     let second_written = stdout_json(dbtool(&[
         "--dsn",
-        &dsn,
+        dsn,
         "--allow-write",
         "ts",
         "write",
@@ -792,7 +792,7 @@ fn run_prometheus_compatible_lifecycle(dsn: &str, expected_kind: &str) {
     assert_eq!(second_written["data"]["written_points"], 1);
     assert_eq!(second_written["data"]["written_samples"], 1);
 
-    let measurements = stdout_json_retry(&["--dsn", &dsn, "ts", "measurements"], |value| {
+    let measurements = stdout_json_retry(&["--dsn", dsn, "ts", "measurements"], |value| {
         value["data"]
             .as_array()
             .is_some_and(|items| items.iter().any(|item| item == &metric))
@@ -804,7 +804,7 @@ fn run_prometheus_compatible_lifecycle(dsn: &str, expected_kind: &str) {
         .any(|item| item == &metric));
 
     let probed = stdout_json_retry(
-        &["--dsn", &dsn, "ts", "query", &metric, "--last-minutes", "1"],
+        &["--dsn", dsn, "ts", "query", &metric, "--last-minutes", "1"],
         |value| {
             value["data"]["series"].as_array().is_some_and(|series| {
                 series.len() == 2
@@ -860,7 +860,7 @@ fn run_prometheus_compatible_lifecycle(dsn: &str, expected_kind: &str) {
     let timestamps = stdout_json_retry(
         &[
             "--dsn",
-            &dsn,
+            dsn,
             "ts",
             "query",
             &timestamp_query,
@@ -878,7 +878,7 @@ fn run_prometheus_compatible_lifecycle(dsn: &str, expected_kind: &str) {
     let limited = stdout_json_retry(
         &[
             "--dsn",
-            &dsn,
+            dsn,
             "--limit",
             "1",
             "ts",
@@ -896,7 +896,7 @@ fn run_prometheus_compatible_lifecycle(dsn: &str, expected_kind: &str) {
     let series_limited = stdout_json_retry(
         &[
             "--dsn",
-            &dsn,
+            dsn,
             "--limit",
             "100",
             "ts",
@@ -917,7 +917,7 @@ fn run_prometheus_compatible_lifecycle(dsn: &str, expected_kind: &str) {
 
     let byte_limited = stderr_json(dbtool(&[
         "--dsn",
-        &dsn,
+        dsn,
         "--max-bytes",
         "1",
         "ts",
