@@ -1,6 +1,6 @@
 # dbtool Final Goal Audit
 
-Last updated: 2026-07-22
+Last updated: 2026-07-25
 
 This audit maps the final objective to current, repo-verifiable evidence. It is
 not a replacement for optional live Docker drills, but it proves the codebase has
@@ -32,7 +32,7 @@ Apple Silicon prerelease points to commit `6794f1b`; required CI run
 `v1.0.0` prerelease remains unchanged at commit `193d32e` and was not moved or
 reused.
 
-The real-product validation campaign is reported separately: 24 tasks are
+The real-product validation campaign is reported separately: 25 tasks are
 `COMPLETE`, 1 is `BLOCKED`, 2 are `EXTERNAL`, and none are `PARTIAL`.
 Those three non-complete tasks are not silently counted as passes.
 

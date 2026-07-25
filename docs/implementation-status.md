@@ -1,6 +1,6 @@
 # dbtool Implementation Status
 
-Last updated: 2026-07-22
+Last updated: 2026-07-25
 
 This document is the current implementation inventory for dbtool. It separates
 implemented behavior, compatibility that has been live-tested, compatibility
@@ -62,7 +62,7 @@ usable.
 | RabbitMQ management | `rabbitmq+http://` | RabbitMQ HTTP admin | queue list, exact fail-closed detail and confirmed conditional delete; consumer-group lag explicitly not relabeled from depth | RabbitMQ 3.13 management production/detail/consume/delete/absence live test with zero queues left |
 | NATS | `nats://`, `nats+tls://` | NATS | INFO/HPUB-preflight budgeted publish, subscribe, exact JetStream cursor, topics/detail/lag and confirmed stream delete | NATS producer N/N-1 zero-retention/readback/zero-state 3/3 plus plain/TLS cursor and lifecycle live tests |
 | OpenSearch | `opensearch://`, `opensearch+https://` | Search HTTP/HTTPS | index list; complete-budget search/aggregations/get; auto-ID index; stable-ID put/update/delete; confirmed delete-index | OpenSearch 2.17.1 full CRUD, exact read operations, caller hit/byte failure checks and zero residual indices; HTTPS fixture and security-plugin transport/auth evidence retained |
-| Elasticsearch | `elasticsearch://`, `elasticsearch+https://` | Search HTTP/HTTPS | OpenSearch-compatible index list; complete-budget search/aggregations/get; full document/index lifecycle | Elasticsearch 8.15.5 full CRUD, exact read operations, caller hit/byte failure checks and zero residual indices; product-native HTTPS remains explicit boundary |
+| Elasticsearch | `elasticsearch://`, `elasticsearch+https://` | Search HTTP/HTTPS | OpenSearch-compatible index list; complete-budget search/aggregations/get; full document/index lifecycle | Elasticsearch 8.15.5 plain HTTP and product-native X-Pack HTTPS/basic-auth/CA full CRUD, exact read operations, caller hit/byte failure checks, auth/CA rejection checks, and zero residual indices |
 | Prometheus | `prometheus://`, `prometheus+http://` | Time series HTTP | metric list, bounded range query with recent-minutes or explicit epoch-ms bounds, and remote write | Exact two-series tagged/timestamped remote-write readback and explicit start/end range against Prometheus 2.55.1 |
 | VictoriaMetrics | `victoriametrics://` | Prometheus-compatible time series HTTP | metric list, bounded range query with recent-minutes or explicit epoch-ms bounds, and guarded remote write | Exact named-product lifecycle against VictoriaMetrics v1.148.0; native APIs, multitenancy and authentication are explicit non-claims |
 

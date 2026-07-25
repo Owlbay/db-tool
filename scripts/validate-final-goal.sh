@@ -233,7 +233,7 @@ require_no_pattern "docs/extended-backends.md" 'A future `CqlEngine` can be adde
 require_pattern "docs/final-goal-audit.md" "The repo satisfies the original dbtool baseline objective"
 require_pattern "docs/final-goal-audit.md" "Product-specific production-readiness exercises remain explicit boundaries"
 require_pattern "docs/final-goal-audit.md" "Active Interface Completion Campaign"
-require_pattern "docs/final-goal-audit.md" "24 tasks are"
+require_pattern "docs/final-goal-audit.md" "25 tasks are"
 require_pattern "docs/final-goal-audit.md" '1 is `BLOCKED`, 2 are `EXTERNAL`, and none are `PARTIAL`'
 require_pattern "docs/final-goal-audit.md" "IF-T52 is the only"
 require_pattern "docs/final-goal-audit.md" "(38 tasks)"
@@ -254,7 +254,9 @@ require_no_pattern "docs/test-evidence/transfer-artifact-atomic-publication.md" 
 require_pattern "docs/test-evidence/transfer-artifact-atomic-publication.md" "29599157939"
 require_pattern "docs/test-evidence/dependency-security-audit.md" "Result: OPEN_UPSTREAM_REMEDIATION"
 require_pattern "docs/test-evidence/sqlserver.md" "Result: LIVE_PASS"
-require_pattern "docs/db-completeness-manifest.md" '24 `COMPLETE`、1 `BLOCKED`、2 `EXTERNAL`、0 `PARTIAL`'
+require_pattern "docs/db-completeness-manifest.md" '28 项：25 `COMPLETE`、1 `BLOCKED`、2 `EXTERNAL`、0 `PARTIAL`'
+require_pattern "testdata/db-completeness.manifest" 'DB-ELASTICSEARCH-001|search|Elasticsearch|elasticsearch,elasticsearch+https|'
+require_no_pattern "testdata/db-completeness.manifest" "product-native HTTPS was not run"
 require_no_pattern "docs/interface-completion-tasks.zh-CN.md" "SQL Server/Db2 live"
 require_pattern "docs/tasks.md" "IF-T43–IF-T81 Interface completion campaign"
 require_pattern "docs/interface-completion-tasks.zh-CN.md" "IF-T43 SQL 参数绑定"

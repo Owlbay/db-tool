@@ -5,7 +5,7 @@
 [`docs/db-completeness-tasks.md`](db-completeness-tasks.md)，逐产品操作证据位于
 [`docs/test-evidence/`](test-evidence/README.md)。
 
-当前共 27 项：24 `COMPLETE`、1 `BLOCKED`、2 `EXTERNAL`、0 `PARTIAL`。
+当前共 28 项：25 `COMPLETE`、1 `BLOCKED`、2 `EXTERNAL`、0 `PARTIAL`。
 
 - `BLOCKED`: IBM Db2 需要正式安装 64 位 Data Server Client、已 source
   `db2profile` 的 x86_64 self-hosted runner；服务器容器库复制方案已通过架构、依赖和
