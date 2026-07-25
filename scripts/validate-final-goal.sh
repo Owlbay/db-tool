@@ -257,6 +257,9 @@ require_pattern "docs/test-evidence/sqlserver.md" "Result: LIVE_PASS"
 require_pattern "docs/db-completeness-manifest.md" '28 项：25 `COMPLETE`、1 `BLOCKED`、2 `EXTERNAL`、0 `PARTIAL`'
 require_pattern "testdata/db-completeness.manifest" 'DB-ELASTICSEARCH-001|search|Elasticsearch|elasticsearch,elasticsearch+https|'
 require_no_pattern "testdata/db-completeness.manifest" "product-native HTTPS was not run"
+require_pattern "testdata/db-completeness.manifest" 'amqp,amqps,rabbitmq+http,rabbitmq+https'
+require_pattern "crates/dbtool-core/src/registry/alias.rs" '"rabbitmq+http", &["rabbitmq+https"]'
+require_pattern "crates/dbtool-cli/tests/live_messaging.rs" "rabbitmq_management_mq_tls_live_validates_ca_auth_and_queue_lifecycle"
 require_no_pattern "docs/interface-completion-tasks.zh-CN.md" "SQL Server/Db2 live"
 require_pattern "docs/tasks.md" "IF-T43–IF-T81 Interface completion campaign"
 require_pattern "docs/interface-completion-tasks.zh-CN.md" "IF-T43 SQL 参数绑定"

@@ -106,7 +106,12 @@ ssl_options.certfile = /etc/rabbitmq/certs/rabbitmq.pem
 ssl_options.keyfile = /etc/rabbitmq/certs/rabbitmq-key.pem
 ssl_options.verify = verify_none
 ssl_options.fail_if_no_peer_cert = false
-management.tcp.port = 15672
+management.ssl.port = 15671
+management.ssl.cacertfile = /etc/rabbitmq/certs/ca.pem
+management.ssl.certfile = /etc/rabbitmq/certs/rabbitmq.pem
+management.ssl.keyfile = /etc/rabbitmq/certs/rabbitmq-key.pem
+management.ssl.verify = verify_none
+management.ssl.fail_if_no_peer_cert = false
 EOF
 
 cat >"$DBTOOL_IT_MQ_TLS_DIR/nats.conf" <<'EOF'
@@ -126,4 +131,7 @@ EOF
 
 export DBTOOL_IT_MQ_TLS_CA="$CERT_DIR/ca.pem"
 export DBTOOL_IT_AMQPS_DSN="${DBTOOL_IT_AMQPS_DSN:-amqps://${DBTOOL_IT_AMQP_USER}:${DBTOOL_IT_AMQP_PASSWORD}@127.0.0.1:${DBTOOL_IT_AMQPS_PORT}/${DBTOOL_IT_AMQP_VHOST}?tls-ca=$DBTOOL_IT_MQ_TLS_CA}"
+export DBTOOL_IT_RABBITMQ_MANAGEMENT_TLS_DSN="${DBTOOL_IT_RABBITMQ_MANAGEMENT_TLS_DSN:-rabbitmq+https://${DBTOOL_IT_AMQP_USER}:${DBTOOL_IT_AMQP_PASSWORD}@localhost:${DBTOOL_IT_AMQP_MANAGEMENT_TLS_PORT}/${DBTOOL_IT_AMQP_VHOST}?tls-ca=$DBTOOL_IT_MQ_TLS_CA}"
+export DBTOOL_IT_RABBITMQ_MANAGEMENT_TLS_BAD_AUTH_DSN="${DBTOOL_IT_RABBITMQ_MANAGEMENT_TLS_BAD_AUTH_DSN:-rabbitmq+https://${DBTOOL_IT_AMQP_USER}:dbtool-intentionally-wrong@localhost:${DBTOOL_IT_AMQP_MANAGEMENT_TLS_PORT}/${DBTOOL_IT_AMQP_VHOST}?tls-ca=$DBTOOL_IT_MQ_TLS_CA}"
+export DBTOOL_IT_RABBITMQ_MANAGEMENT_TLS_MISSING_CA_DSN="${DBTOOL_IT_RABBITMQ_MANAGEMENT_TLS_MISSING_CA_DSN:-rabbitmq+https://${DBTOOL_IT_AMQP_USER}:${DBTOOL_IT_AMQP_PASSWORD}@localhost:${DBTOOL_IT_AMQP_MANAGEMENT_TLS_PORT}/${DBTOOL_IT_AMQP_VHOST}}"
 export DBTOOL_IT_NATS_TLS_DSN="${DBTOOL_IT_NATS_TLS_DSN:-nats+tls://127.0.0.1:${DBTOOL_IT_NATS_TLS_PORT}?tls-ca=$DBTOOL_IT_MQ_TLS_CA}"
