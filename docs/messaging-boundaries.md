@@ -61,7 +61,9 @@ Current core behavior:
 
 RabbitMQ queue listing is exposed through an explicit management boundary, not hidden inside the pure AMQP protocol path:
 
-- `rabbitmq+http://user:pass@host:15672/vhost` registers an admin-only connector.
+- `rabbitmq+http://user:pass@host:15672/vhost` registers an admin-only plaintext
+  connector; `rabbitmq+https://user:pass@host:15671/vhost?tls-ca=/path/ca.pem`
+  registers the same bounded admin surface over server-name-validated TLS.
 - `mq topics` lists queues through `/api/queues/{vhost}`.
 - `mq detail <queue>` uses `/api/queues/{vhost}/{queue}` and reports an exact
   snapshot only after RabbitMQ publishes count fields. It prefers a valid

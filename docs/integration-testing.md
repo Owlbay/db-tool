@@ -883,13 +883,21 @@ The live tests cover:
 - Kafka ping through metadata, produce, topics, detail/watermarks, and consume.
 - Optional native Kafka/librdkafka coverage through the same Redpanda test data.
 - Env-gated AutoMQ, WarpStream, and Confluent smoke through externally supplied DSNs.
-- RabbitMQ queue publish, passive detail/message count, acked consume, write guard, and HTTP management queue listing/detail/lag.
+- RabbitMQ queue publish, passive detail/message count, acked consume, write
+  guard, HTTP management queue listing/detail/lag, and CA-backed management
+  HTTPS with missing-CA/wrong-auth rejection plus conditional delete/absence
+  cleanup.
 - NATS live subscribe/publish round trip, JetStream topics/detail/lag, and write guard.
-- AMQPS queue publish/detail/consume and NATS TLS publish/subscribe plus JetStream topics/detail/lag through local CA-backed TLS services.
+- AMQPS queue publish/detail/consume, RabbitMQ management HTTPS
+  list/detail/conditional-delete, and NATS TLS publish/subscribe plus JetStream
+  topics/detail/lag through local CA-backed TLS services.
 - OpenSearch ping/caps, write guard, exact three-document indexing/readback, hard limit, pagination/truncation, and index listing over plain HTTP plus TLS transport through `opensearch+https://`.
 - OpenSearch TLS harness fixture loading by searching the seeded `dbtool_it_seed` index from the Dockerfile-built image.
 - OpenSearch security-plugin HTTPS/basic-auth through generated local CA/node certificates and `tls-ca` validation.
 - Elasticsearch ping/caps, write guard, exact three-document indexing/readback, hard limit, pagination/truncation, and index listing against the product-native Elasticsearch image.
 - Prometheus ping/caps, guarded remote write, dynamic metric listing, exact tagged/timestamped two-series readback, invalid-window rejection, and global sample limiting through `ts`.
 
-Core NATS and Redis Pub/Sub do not expose durable subject/channel listing, and AMQP 0.9.1 does not expose queue listing without RabbitMQ management APIs; use an explicit `rabbitmq+http://` management DSN for RabbitMQ queue discovery.
+Core NATS and Redis Pub/Sub do not expose durable subject/channel listing, and
+AMQP 0.9.1 does not expose queue listing without RabbitMQ management APIs; use
+an explicit `rabbitmq+http://` or `rabbitmq+https://` management DSN for
+RabbitMQ queue discovery.
