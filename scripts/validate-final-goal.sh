@@ -97,11 +97,19 @@ require_pattern ".github/workflows/ci.yml" "smoke-windows-portable.ps1"
 require_no_pattern ".github/workflows/ci.yml" "windows-portable-pr:"
 require_no_pattern ".github/workflows/release.yml" "package-npm:"
 require_no_pattern ".github/workflows/release.yml" "package-python:"
+require_pattern ".github/workflows/npm-prepublish-evidence.yml" "workflow_dispatch:"
+require_pattern ".github/workflows/npm-prepublish-evidence.yml" "ubuntu-24.04-arm"
+require_pattern ".github/workflows/npm-prepublish-evidence.yml" "macos-15-intel"
+require_pattern ".github/workflows/npm-prepublish-evidence.yml" "windows-11-arm"
+require_pattern ".github/workflows/npm-prepublish-evidence.yml" "node scripts/package-npm.mjs"
+require_pattern ".github/workflows/npm-prepublish-evidence.yml" "npm publish --dry-run"
+require_pattern "docs/test-evidence/npm-publication.md" "NPM-T06 stays open"
 
 for target in "${package_targets[@]}"; do
   if [[ "$target" != "$release_target" ]]; then
     require_no_pattern ".github/workflows/release.yml" "$target"
   fi
+  require_pattern ".github/workflows/npm-prepublish-evidence.yml" "$target"
   require_pattern "scripts/package-release.sh" "$target"
   require_pattern "scripts/package-npm.mjs" "$target"
   require_pattern "scripts/package-python-wheel.py" "$target"

@@ -1,0 +1,147 @@
+name: npm prepublish evidence
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_ref:
+        description: Immutable v-prefixed release tag to package
+        required: true
+        default: v1.0.1
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  validate-release:
+    name: Validate immutable release ref
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.3
+        with:
+          ref: ${{ inputs.release_ref }}
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Require ref to match the workspace version
+        env:
+          RELEASE_REF: ${{ inputs.release_ref }}
+        run: scripts/validate-release-version.sh "$RELEASE_REF"
+
+  build-unix:
+    name: Build and smoke ${{ matrix.target }}
+    needs: validate-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            target: x86_64-unknown-linux-musl
+          - runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+          - runner: macos-15-intel
+            target: x86_64-apple-darwin
+          - runner: macos-latest
+            target: aarch64-apple-darwin
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6.0.3
+        with:
+          ref: ${{ inputs.release_ref }}
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Install musl toolchain
+        if: contains(matrix.target, 'linux-musl')
+        run: sudo apt-get update && sudo apt-get install --yes musl-tools
+      - name: Build portable binary
+        run: cargo build --locked --release --target "${{ matrix.target }}" -p dbtool-cli --no-default-features --features portable
+      - name: Prepare and smoke native binary
+        run: |
+          mkdir -p "dist-bin/${{ matrix.target }}"
+          cp "target/${{ matrix.target }}/release/dbtool" "dist-bin/${{ matrix.target }}/dbtool"
+          chmod +x "dist-bin/${{ matrix.target }}/dbtool"
+          scripts/smoke-binary.sh "${{ matrix.target }}" "dist-bin/${{ matrix.target }}/dbtool"
+      - name: Upload native binary evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbtool-bin-${{ matrix.target }}
+          path: dist-bin/${{ matrix.target }}/dbtool
+          if-no-files-found: error
+
+  build-windows:
+    name: Build and smoke ${{ matrix.target }}
+    needs: validate-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            target: x86_64-pc-windows-msvc
+          - runner: windows-11-arm
+            target: aarch64-pc-windows-msvc
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6.0.3
+        with:
+          ref: ${{ inputs.release_ref }}
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Build portable binary
+        run: cargo build --locked --release --target "${{ matrix.target }}" -p dbtool-cli --no-default-features --features portable
+      - name: Prepare native binary
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "dist-bin/${{ matrix.target }}" | Out-Null
+          Copy-Item "target/${{ matrix.target }}/release/dbtool.exe" "dist-bin/${{ matrix.target }}/dbtool.exe"
+      - name: Smoke native binary
+        shell: pwsh
+        run: scripts/smoke-windows-portable.ps1 -Binary "dist-bin/${{ matrix.target }}/dbtool.exe"
+      - name: Upload native binary evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbtool-bin-${{ matrix.target }}
+          path: dist-bin/${{ matrix.target }}/dbtool.exe
+          if-no-files-found: error
+
+  package-npm:
+    name: Package and dry-run all seven npm packages
+    needs:
+      - build-unix
+      - build-windows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.3
+        with:
+          ref: ${{ inputs.release_ref }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dbtool-bin-*
+          path: artifacts
+      - name: Build npm package matrix
+        env:
+          RELEASE_REF: ${{ inputs.release_ref }}
+        run: node scripts/package-npm.mjs artifacts npm-dist "$RELEASE_REF"
+      - name: Capture seven publish dry-runs
+        run: |
+          mkdir -p npm-dry-run
+          count=0
+          for package_dir in npm-dist/.work/*; do
+            package_id="$(basename "$package_dir")"
+            (
+              cd "$package_dir"
+              npm publish --dry-run --ignore-scripts --json
+            ) > "npm-dry-run/${package_id}.json"
+            count=$((count + 1))
+          done
+          test "$count" -eq 7
+      - name: Upload npm prepublish evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-prepublish-${{ inputs.release_ref }}
+          path: |
+            npm-dist/*.tgz
+            npm-dry-run/*.json
+          if-no-files-found: error
