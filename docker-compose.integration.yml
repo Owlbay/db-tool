@@ -983,6 +983,7 @@ services:
       - ${DBTOOL_IT_MQ_TLS_DIR:-.tmp/dbtool-it-mq-tls}/certs:/etc/rabbitmq/certs:ro
     ports:
       - "${DBTOOL_IT_AMQPS_PORT:-25671}:5671"
+      - "${DBTOOL_IT_AMQP_MANAGEMENT_TLS_PORT:-25672}:15671"
     healthcheck:
       test:
         [

@@ -514,7 +514,10 @@ requires a host ODBC runtime; native Kafka stays behind `full-native`.
 - SQL Server and Cassandra/ScyllaDB adapters: implemented and registered, with service-free adapter coverage plus opt-in Docker integration profiles; Cassandra 5 and product-native ScyllaDB 2026.1.8 have passed local live coverage, and SQL Server has passed live coverage on GitHub Actions x86_64 runners.
 - Kafka adapter: pure Rust ping/list/detail/produce/consume is included by
   `portable` and `full`; native librdkafka is selected by `full-native`.
-- Redis Streams/PubSub, AMQP, and NATS adapters: real bounded producer/consumer paths implemented; AMQPS and NATS TLS live paths, NATS JetStream admin, and RabbitMQ management-backed queue discovery are implemented.
+- Redis Streams/PubSub, AMQP, and NATS adapters: real bounded
+  producer/consumer paths implemented; AMQPS, RabbitMQ management HTTPS, and
+  NATS TLS live paths, NATS JetStream admin, and RabbitMQ management-backed
+  queue discovery are implemented.
 - TUI: connection picker, a fixed form palette, operation-gated command dispatch,
   read limits, AST-based SQL write classification, readonly protection,
   one-shot write confirmation, history, and failure-safe terminal restoration
