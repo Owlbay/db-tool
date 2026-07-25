@@ -57,7 +57,7 @@ pub fn build_registry() -> Registry {
     #[cfg(feature = "amqp")]
     {
         r.register_family("amqp", adapter_amqp::factory);
-        r.register("rabbitmq+http", adapter_amqp::management_factory);
+        r.register_family("rabbitmq+http", adapter_amqp::management_factory);
     }
 
     #[cfg(feature = "nats")]
@@ -66,4 +66,18 @@ pub fn build_registry() -> Registry {
     }
 
     r
+}
+
+#[cfg(all(test, feature = "amqp"))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn registry_exposes_rabbitmq_management_http_and_https_schemes() {
+        let registry = build_registry();
+        let schemes = registry.supported_schemes();
+
+        assert!(schemes.contains(&"rabbitmq+http"));
+        assert!(schemes.contains(&"rabbitmq+https"));
+    }
 }

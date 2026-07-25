@@ -883,11 +883,41 @@ fn rabbitmq_management_live_lists_details_and_deletes_queues() {
     let Some(management_dsn) = dsn("DBTOOL_IT_RABBITMQ_MANAGEMENT_DSN") else {
         return;
     };
+    assert_rabbitmq_management_lifecycle(&amqp_dsn, &management_dsn, "rabbitmq+http");
+}
+
+#[test]
+fn rabbitmq_management_mq_tls_live_validates_ca_auth_and_queue_lifecycle() {
+    if !tls_integration_enabled() {
+        return;
+    }
+    let Some(amqp_dsn) = dsn("DBTOOL_IT_AMQPS_DSN") else {
+        return;
+    };
+    let Some(management_dsn) = dsn("DBTOOL_IT_RABBITMQ_MANAGEMENT_TLS_DSN") else {
+        return;
+    };
+    let Some(bad_auth_dsn) = dsn("DBTOOL_IT_RABBITMQ_MANAGEMENT_TLS_BAD_AUTH_DSN") else {
+        return;
+    };
+    let Some(missing_ca_dsn) = dsn("DBTOOL_IT_RABBITMQ_MANAGEMENT_TLS_MISSING_CA_DSN") else {
+        return;
+    };
+
+    let bad_auth = stderr_json(dbtool(&["--dsn", &bad_auth_dsn, "ping"]));
+    assert_eq!(bad_auth["error"]["code"], "AUTH_ERROR");
+    let missing_ca = stderr_json(dbtool(&["--dsn", &missing_ca_dsn, "ping"]));
+    assert_eq!(missing_ca["error"]["code"], "CONNECTION_ERROR");
+
+    assert_rabbitmq_management_lifecycle(&amqp_dsn, &management_dsn, "rabbitmq+https");
+}
+
+fn assert_rabbitmq_management_lifecycle(amqp_dsn: &str, management_dsn: &str, expected_kind: &str) {
     let queue = unique_name("dbtool_it_rabbitmq_mgmt_queue");
 
     let produced = stdout_json(dbtool(&[
         "--dsn",
-        &amqp_dsn,
+        amqp_dsn,
         "--allow-write",
         "mq",
         "produce",
@@ -898,15 +928,15 @@ fn rabbitmq_management_live_lists_details_and_deletes_queues() {
     ]));
     assert_eq!(produced["data"]["produced"], 1);
 
-    let ping = stdout_json_retry(&["--dsn", &management_dsn, "ping"]);
-    assert_eq!(ping["kind"], "rabbitmq+http");
+    let ping = stdout_json_retry(&["--dsn", management_dsn, "ping"]);
+    assert_eq!(ping["kind"], expected_kind);
     assert_eq!(ping["ok"], true);
 
-    let caps = stdout_json_retry(&["--dsn", &management_dsn, "caps"]);
+    let caps = stdout_json_retry(&["--dsn", management_dsn, "caps"]);
     assert_eq!(caps["data"]["admin"], true);
     assert_eq!(caps["data"]["producer"], false);
 
-    let topics = stdout_json_retry(&["--dsn", &management_dsn, "mq", "topics"]);
+    let topics = stdout_json_retry(&["--dsn", management_dsn, "mq", "topics"]);
     assert!(topics["data"]
         .as_array()
         .expect("topics should be an array")
@@ -917,19 +947,19 @@ fn rabbitmq_management_live_lists_details_and_deletes_queues() {
     // The adapter intentionally fails closed until an exact snapshot exists,
     // so the live test waits for that complete management response.
     let detail = stdout_json_retry_until_complete(
-        &["--dsn", &management_dsn, "mq", "detail", &queue],
+        &["--dsn", management_dsn, "mq", "detail", &queue],
         |value| value["data"]["config"]["message_count"] == "1",
     );
     assert_eq!(detail["data"]["info"]["name"], queue);
     assert_eq!(detail["data"]["config"]["message_count"], "1");
     assert_eq!(detail["data"]["watermarks"][0]["high"], 1);
 
-    let lag = stderr_json(dbtool(&["--dsn", &management_dsn, "mq", "lag", &queue]));
+    let lag = stderr_json(dbtool(&["--dsn", management_dsn, "mq", "lag", &queue]));
     assert_eq!(lag["error"]["code"], "UNSUPPORTED_CAPABILITY");
 
     let unsupported = stderr_json(dbtool(&[
         "--dsn",
-        &management_dsn,
+        management_dsn,
         "--allow-write",
         "mq",
         "produce",
@@ -940,7 +970,7 @@ fn rabbitmq_management_live_lists_details_and_deletes_queues() {
 
     let consumed = stdout_json(dbtool(&[
         "--dsn",
-        &amqp_dsn,
+        amqp_dsn,
         "--allow-write",
         "mq",
         "consume",
@@ -962,13 +992,13 @@ fn rabbitmq_management_live_lists_details_and_deletes_queues() {
     );
 
     let drained_detail = stdout_json_retry_until(
-        &["--dsn", &management_dsn, "mq", "detail", &queue],
+        &["--dsn", management_dsn, "mq", "detail", &queue],
         |value| value["data"]["config"]["message_count"] == "0",
     );
     assert_eq!(drained_detail["data"]["config"]["message_count"], "0");
 
     let deleted = confirmed_mq_delete(
-        &management_dsn,
+        management_dsn,
         "amqp-queue",
         &queue,
         &["--if-empty", "--if-unused"],
@@ -977,7 +1007,7 @@ fn rabbitmq_management_live_lists_details_and_deletes_queues() {
     assert_eq!(deleted["data"]["consumers_before"], 0);
     assert_eq!(deleted["data"]["verified_absent"], true);
     let topics_after_cleanup =
-        stdout_json_retry_until(&["--dsn", &management_dsn, "mq", "topics"], |value| {
+        stdout_json_retry_until(&["--dsn", management_dsn, "mq", "topics"], |value| {
             !value["data"]
                 .as_array()
                 .expect("topics should be an array")

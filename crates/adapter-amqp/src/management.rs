@@ -14,18 +14,31 @@ use dbtool_core::{
     service::limiter::{ListLimiter, ReadLimiter},
 };
 use futures::future::BoxFuture;
+use rustls::{ClientConfig, RootCertStore};
+use rustls_pki_types::ServerName;
 use serde_json::Value;
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    fs::File,
+    io::BufReader,
+    sync::Arc,
+};
 use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
+    io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
     net::TcpStream,
     time::timeout,
 };
+use tokio_rustls::TlsConnector;
 use url::Url;
 
 const HTTP_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(5);
 const MAX_HTTP_RESPONSE_BYTES: usize = 1024 * 1024;
 const RABBIT_QUEUE_PAGE_SIZE: usize = 100;
+
+trait AsyncHttpStream: AsyncRead + AsyncWrite + Unpin + Send {}
+impl<T> AsyncHttpStream for T where T: AsyncRead + AsyncWrite + Unpin + Send {}
+
+type BoxedHttpStream = Box<dyn AsyncHttpStream>;
 
 pub struct RabbitManagementAdapter {
     client: RabbitManagementClient,
@@ -176,23 +189,39 @@ struct RabbitManagementClient {
     port: u16,
     vhost: String,
     authorization: String,
+    transport: ManagementTransport,
+}
+
+enum ManagementTransport {
+    Http,
+    Https {
+        server_name: ServerName<'static>,
+        tls_ca: Option<String>,
+    },
 }
 
 impl RabbitManagementClient {
     fn from_dsn(dsn: &Dsn) -> Result<Self> {
         let url = Url::parse(&dsn.raw).map_err(|e| Error::Dsn(format!("invalid URL: {e}")))?;
-        if url.scheme() != "rabbitmq+http" {
-            return Err(Error::Dsn(format!(
-                "RabbitMQ management DSN must use rabbitmq+http, got {}",
-                url.scheme()
-            )));
-        }
-
         let host = url
             .host_str()
             .ok_or_else(|| Error::Dsn("RabbitMQ management DSN requires a host".into()))?
             .to_owned();
-        let port = url.port().unwrap_or(15672);
+        let transport = match url.scheme() {
+            "rabbitmq+http" => ManagementTransport::Http,
+            "rabbitmq+https" => ManagementTransport::Https {
+                server_name: tls_server_name(&host)?,
+                tls_ca: management_tls_ca(dsn).map(ToOwned::to_owned),
+            },
+            scheme => {
+                return Err(Error::Dsn(format!(
+                    "RabbitMQ management DSN must use rabbitmq+http or rabbitmq+https, got {scheme}"
+                )))
+            }
+        };
+        let port = url
+            .port()
+            .unwrap_or_else(|| default_management_port(url.scheme()));
         let username = percent_decode(url.username())?;
         if username.is_empty() {
             return Err(Error::Dsn(
@@ -215,6 +244,7 @@ impl RabbitManagementClient {
             port,
             vhost,
             authorization,
+            transport,
         })
     }
 
@@ -325,13 +355,7 @@ impl RabbitManagementClient {
     }
 
     async fn request(&self, method: &str, path: &str) -> Result<HttpResponse> {
-        let mut stream = timeout(
-            HTTP_TIMEOUT,
-            TcpStream::connect((self.host.as_str(), self.port)),
-        )
-        .await
-        .map_err(|_| Error::Timeout)?
-        .map_err(|e| Error::Connection(e.to_string()))?;
+        let mut stream = self.connect_stream().await?;
         let request = format!(
             "{method} {path} HTTP/1.1\r\nHost: {}:{}\r\nAuthorization: Basic {}\r\nAccept: application/json\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
             self.host, self.port, self.authorization,
@@ -346,6 +370,30 @@ impl RabbitManagementClient {
             .map_err(|_| Error::Timeout)??;
         parse_http_response(&response)
     }
+
+    async fn connect_stream(&self) -> Result<BoxedHttpStream> {
+        let stream = timeout(
+            HTTP_TIMEOUT,
+            TcpStream::connect((self.host.as_str(), self.port)),
+        )
+        .await
+        .map_err(|_| Error::Timeout)?
+        .map_err(|e| Error::Connection(e.to_string()))?;
+        match &self.transport {
+            ManagementTransport::Http => Ok(Box::new(stream)),
+            ManagementTransport::Https {
+                server_name,
+                tls_ca,
+            } => {
+                let connector = TlsConnector::from(Arc::new(tls_client_config(tls_ca.as_deref())?));
+                let stream = timeout(HTTP_TIMEOUT, connector.connect(server_name.clone(), stream))
+                    .await
+                    .map_err(|_| Error::Timeout)?
+                    .map_err(|e| Error::Connection(e.to_string()))?;
+                Ok(Box::new(stream))
+            }
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -354,14 +402,20 @@ struct HttpResponse {
     body: Vec<u8>,
 }
 
-async fn read_bounded_response(stream: &mut TcpStream) -> Result<Vec<u8>> {
+async fn read_bounded_response<S>(stream: &mut S) -> Result<Vec<u8>>
+where
+    S: AsyncRead + Unpin + ?Sized,
+{
     let mut response = Vec::new();
     let mut buffer = [0_u8; 8192];
     loop {
-        let read = stream
-            .read(&mut buffer)
-            .await
-            .map_err(|e| Error::Connection(e.to_string()))?;
+        let read = match stream.read(&mut buffer).await {
+            Ok(read) => read,
+            Err(error) if !response.is_empty() && is_tls_close_notify_eof(&error) => {
+                return Ok(response);
+            }
+            Err(error) => return Err(Error::Connection(error.to_string())),
+        };
         if read == 0 {
             return Ok(response);
         }
@@ -378,6 +432,12 @@ async fn read_bounded_response(stream: &mut TcpStream) -> Result<Vec<u8>> {
     }
 }
 
+fn is_tls_close_notify_eof(error: &std::io::Error) -> bool {
+    error
+        .to_string()
+        .contains("peer closed connection without sending TLS close_notify")
+}
+
 fn rabbit_management_operations(capabilities: Capabilities) -> Vec<CapabilityOperation> {
     let mut operations = capabilities.operations();
     operations.extend([
@@ -389,6 +449,13 @@ fn rabbit_management_operations(capabilities: Capabilities) -> Vec<CapabilityOpe
         CapabilityOperation::MessageAdminDelete,
     ]);
     operations
+}
+
+fn default_management_port(scheme: &str) -> u16 {
+    match scheme {
+        "rabbitmq+https" => 15671,
+        _ => 15672,
+    }
 }
 
 struct QueuePage {
@@ -691,6 +758,70 @@ fn basic_auth(username: &str, password: &str) -> String {
     base64_encode(format!("{username}:{password}").as_bytes())
 }
 
+fn tls_server_name(host: &str) -> Result<ServerName<'static>> {
+    ServerName::try_from(host.to_owned())
+        .map_err(|e| Error::Dsn(format!("invalid TLS server name: {e}")))
+}
+
+fn tls_client_config(tls_ca: Option<&str>) -> Result<ClientConfig> {
+    let cert_result = rustls_native_certs::load_native_certs();
+    let load_errors = cert_result
+        .errors
+        .iter()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>()
+        .join("; ");
+    let mut roots = RootCertStore::empty();
+    let (valid, invalid) = roots.add_parsable_certificates(cert_result.certs);
+    let custom_valid = if let Some(path) = tls_ca {
+        add_custom_ca_file(&mut roots, path)?
+    } else {
+        0
+    };
+
+    if valid + custom_valid == 0 {
+        let mut reason = format!("no usable native root certificates found; ignored {invalid}");
+        if !load_errors.is_empty() {
+            reason.push_str(&format!("; load errors: {load_errors}"));
+        }
+        return Err(Error::Connection(reason));
+    }
+
+    Ok(ClientConfig::builder()
+        .with_root_certificates(roots)
+        .with_no_client_auth())
+}
+
+fn management_tls_ca(dsn: &Dsn) -> Option<&str> {
+    dsn.params
+        .get("tls-ca")
+        .or_else(|| dsn.params.get("ssl-ca"))
+        .map(String::as_str)
+}
+
+fn add_custom_ca_file(roots: &mut RootCertStore, path: &str) -> Result<usize> {
+    let file = File::open(path)
+        .map_err(|e| Error::Config(format!("failed to open TLS CA file {path}: {e}")))?;
+    let mut reader = BufReader::new(file);
+    let certs = rustls_pemfile::certs(&mut reader)
+        .collect::<std::result::Result<Vec<_>, _>>()
+        .map_err(|e| Error::Config(format!("failed to read TLS CA file {path}: {e}")))?;
+    if certs.is_empty() {
+        return Err(Error::Config(format!(
+            "TLS CA file {path} does not contain PEM certificates"
+        )));
+    }
+
+    let (valid, invalid) = roots.add_parsable_certificates(certs);
+    if valid == 0 {
+        return Err(Error::Config(format!(
+            "TLS CA file {path} did not contain usable certificates; ignored {invalid}"
+        )));
+    }
+
+    Ok(valid)
+}
+
 fn base64_encode(input: &[u8]) -> String {
     const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let mut out = String::with_capacity(input.len().div_ceil(3) * 4);
@@ -869,6 +1000,16 @@ mod tests {
     }
 
     #[test]
+    fn tls_close_without_notify_is_tolerated_only_after_a_response() {
+        let close_error =
+            std::io::Error::other("peer closed connection without sending TLS close_notify");
+        assert!(is_tls_close_notify_eof(&close_error));
+        assert!(!is_tls_close_notify_eof(&std::io::Error::other(
+            "ordinary read failure"
+        )));
+    }
+
+    #[test]
     fn management_dsn_extracts_vhost_and_auth() {
         let dsn = Dsn::parse("rabbitmq+http://dbtool:secret@127.0.0.1:15672/%2F").unwrap();
         let client = RabbitManagementClient::from_dsn(&dsn).unwrap();
@@ -878,6 +1019,33 @@ mod tests {
         assert_eq!(client.vhost, "/");
         assert_eq!(client.authorization, "ZGJ0b29sOnNlY3JldA==");
         assert_eq!(client.queues_path(), "/api/queues/%2F");
+        assert!(matches!(client.transport, ManagementTransport::Http));
+    }
+
+    #[test]
+    fn management_https_defaults_to_tls_port() {
+        assert_eq!(default_management_port("rabbitmq+https"), 15671);
+        assert_eq!(default_management_port("rabbitmq+http"), 15672);
+    }
+
+    #[test]
+    fn management_tls_ca_accepts_tls_and_ssl_aliases() {
+        let tls =
+            Dsn::parse("rabbitmq+https://dbtool:secret@localhost/%2F?tls-ca=/tmp/rabbit-ca.pem")
+                .unwrap();
+        let ssl =
+            Dsn::parse("rabbitmq+https://dbtool:secret@localhost/%2F?ssl-ca=/tmp/rabbit-ca.pem")
+                .unwrap();
+
+        assert_eq!(management_tls_ca(&tls), Some("/tmp/rabbit-ca.pem"));
+        assert_eq!(management_tls_ca(&ssl), Some("/tmp/rabbit-ca.pem"));
+    }
+
+    #[test]
+    fn tls_server_name_accepts_dns_and_ip_hosts() {
+        assert!(tls_server_name("localhost").is_ok());
+        assert!(tls_server_name("127.0.0.1").is_ok());
+        assert!(tls_server_name("").is_err());
     }
 
     #[test]

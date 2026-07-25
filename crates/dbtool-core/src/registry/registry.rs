@@ -101,4 +101,17 @@ mod tests {
 
         assert_eq!(conn.kind().0, "dummy");
     }
+
+    #[tokio::test]
+    async fn connect_resolves_registered_rabbitmq_management_alias() {
+        let mut registry = Registry::new();
+        registry.register_family("rabbitmq+http", dummy_factory);
+
+        let conn = registry
+            .connect("rabbitmq+https://user:pass@localhost/%2F")
+            .await
+            .unwrap();
+
+        assert_eq!(conn.kind().0, "dummy");
+    }
 }

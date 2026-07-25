@@ -330,7 +330,7 @@ impl AdminInspect for AmqpAdapter {
     async fn list_topics(&self) -> Result<Vec<TopicInfo>> {
         Err(Error::UnsupportedCapability {
             kind: self.kind.0.clone(),
-            needed: "TopicListing (use rabbitmq+http)",
+            needed: "TopicListing (use rabbitmq+http or rabbitmq+https)",
         })
     }
 
@@ -353,7 +353,7 @@ impl AdminInspect for AmqpAdapter {
     async fn consumer_lag(&self, _group: &str) -> Result<Vec<LagInfo>> {
         Err(Error::UnsupportedCapability {
             kind: self.kind.0.clone(),
-            needed: "ConsumerLag (use rabbitmq+http)",
+            needed: "ConsumerLag (use rabbitmq+http or rabbitmq+https)",
         })
     }
 }

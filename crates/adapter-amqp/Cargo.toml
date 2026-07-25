@@ -18,3 +18,8 @@ tracing      = { workspace = true }
 lapin        = { workspace = true }
 bytes        = { workspace = true }
 url          = { workspace = true }
+rustls       = { workspace = true }
+rustls-native-certs = { workspace = true }
+rustls-pemfile = { workspace = true }
+rustls-pki-types = { workspace = true }
+tokio-rustls = { workspace = true }

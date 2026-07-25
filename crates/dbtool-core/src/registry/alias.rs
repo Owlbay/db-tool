@@ -18,6 +18,7 @@ pub const PROTOCOL_ALIASES: &[(&str, &[&str])] = &[
     ),
     ("prometheus", &["prometheus+http", "victoriametrics"]),
     ("amqp", &["amqps"]),
+    ("rabbitmq+http", &["rabbitmq+https"]),
     ("nats", &["nats+tls"]),
 ];
 
@@ -56,6 +57,7 @@ mod tests {
         assert_eq!(canonical_scheme("victoriametrics"), "prometheus");
         assert_eq!(canonical_scheme("ibmdb2"), "db2");
         assert_eq!(canonical_scheme("as400"), "db2");
+        assert_eq!(canonical_scheme("rabbitmq+https"), "rabbitmq+http");
     }
 
     #[test]
