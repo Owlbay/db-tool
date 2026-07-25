@@ -39,7 +39,7 @@ cargo test -p adapter-kafka --no-default-features --features backend-native --li
 结果：
 
 - CLI 前置校验：10/10；覆盖 `--limit 0`、`usize::MAX`，均在不可达 DSN 连接前返回配置错误。
-- RabbitMQ adapter：24 unit + 3 integration。
+- RabbitMQ adapter：31 unit + 3 integration（2026-07-25 HTTPS refresh）。
 - Redis adapter：47/47。
 - NATS adapter：17 unit + 2 integration。
 - Kafka pure adapter：18 unit + 1 integration。

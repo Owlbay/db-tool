@@ -17,12 +17,18 @@ Resource operations:
 | Resource | Create/write | Read all fixture data | Metadata/lag | Guard/TLS/bounds | Cleanup |
 | --- | --- | --- | --- | --- | --- |
 | `dbtool_it_amqps_queue_*` | AMQPS queue and acknowledged `amqps-payload` publish PASS | exact payload consumed and acknowledged PASS | passive detail count 1; raw AMQPS topics/lag explicitly UNSUPPORTED PASS | write guard, CA verification, max 1/timeout 5 PASS | queue drained to count 0; disposable volume removed PASS |
+| `dbtool_it_rabbitmq_mgmt_queue_*` | AMQPS queue and acknowledged management fixture publish PASS | exact payload consumed and acknowledged over AMQPS PASS | `rabbitmq+https` list and exact detail reported count 1 then 0; lag explicitly UNSUPPORTED PASS | missing CA rejected; wrong Basic Auth returned `AUTH_ERROR`; server name and custom CA verified; one MiB transport bound retained PASS | conditional confirmed HTTPS delete, absence, and empty queue inventory PASS |
 | `dbtool.it.nats.tls.subject.*` | NATS TLS core publish of `nats-tls-payload` PASS | active TLS subscriber received exact payload PASS | durable metadata N/A for core subject | write guard, CA verification, max 1/timeout 5 PASS | ephemeral subject and subscriber exit PASS |
 | `DBTOOL_IT_NATS_TLS_STREAM_*` | TLS JetStream stream, durable consumer, and acknowledged `nats-tls-jetstream-payload` PASS | detail reported one stored message PASS | topics/detail/lag reported one stream, consumer, and lag 1 PASS | authenticated TLS transport and bounded calls PASS | delete_stream succeeded and topics absence verified PASS |
 
 The first run detected expired cached certificates. The preparation script now
 renews the complete CA/server set when stale or incomplete; the regenerated
 certificates passed OpenSSL validity checks and the live suite passed 2/2.
+
+The 2026-07-25 refresh enabled RabbitMQ management HTTPS on port 15671 and
+reran the profile with regenerated certificates. AMQPS, management HTTPS, and
+NATS TLS passed 3/3; the trap removed both containers, their volumes, and the
+project network.
 
 Cleanup: PASS
 

@@ -53,7 +53,7 @@ confirmed the management queue list was empty. Direct AMQP 0.9.1 continues to
 advertise neither item-bounded nor byte-budgeted global queue listing because
 that protocol has no portable discovery operation.
 
-Verification: adapter-amqp 24 unit + 3 integration PASS; strict all-target
+Verification: adapter-amqp 31 unit + 3 integration PASS; strict all-target
 Clippy, rustfmt and diff check PASS; RabbitMQ management live catalog and empty
 cleanup PASS.
 
@@ -95,6 +95,36 @@ DBTOOL_IT_AMQP_DSN=amqp://... \
 ```
 
 Cleanup: PASS; focused management API final queue list was `[]`
+
+## 2026-07-25 management HTTPS refresh
+
+Result: LIVE_PASS
+
+The admin-only management connector now registers both
+`rabbitmq+http://` and `rabbitmq+https://`. HTTPS uses rustls with native roots
+and optional `tls-ca` / `ssl-ca` PEM roots, validates the TLS server name, and
+defaults to RabbitMQ management TLS port 15671. It retains the existing
+five-second connect/read/write timeouts, one MiB response ceiling, exact
+paginated queue catalog, fail-closed queue counts, and conditional delete
+verification. A TLS peer that returns a complete HTTP response and then omits
+`close_notify` is accepted only after response bytes exist; other read failures
+remain connection errors.
+
+`DBTOOL_IT_MQ_TLS_REGENERATE_CERTS=1
+./scripts/integration-mq-tls-test.sh` started the pinned RabbitMQ 3.13.7
+management image with CA-backed AMQPS and management HTTPS listeners. The
+product run proved:
+
+- the self-signed endpoint is rejected without the configured CA;
+- wrong Basic Auth is returned as `AUTH_ERROR`, not a transport success;
+- `ping`, `caps`, paginated queue listing, exact count detail, AMQPS consume,
+  conditional confirmed delete, post-delete absence, and zero residual queue
+  inventory pass through `rabbitmq+https://`;
+- the existing AMQPS and NATS TLS lifecycles still pass in the same three-test
+  run.
+
+Verification: adapter-amqp 31/31 unit tests PASS; messaging TLS live 3/3 PASS;
+containers, volumes, and the project network were removed by the test trap.
 
 Commits: `e24fb79`, `acff12b`, `1279cbd`, `d2c88a2`, `9a813d8`, `d580664`,
 `d69f866`, IF-T47, IF-T59

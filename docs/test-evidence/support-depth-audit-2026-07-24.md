@@ -70,7 +70,7 @@ VictoriaMetrics import/export, multitenancy, clustering, and authenticated
 | Redshift | EXTERNAL | `DBTOOL_IT_REDSHIFT_DSN` was not supplied. |
 | AutoMQ, WarpStream, Confluent | EXTERNAL | no vendor DSN was supplied; the runner now requires key/header/partition/timestamp/cursor fidelity when endpoints are provided. |
 | TiDB secure HA drills | not rerun locally | the 2 CPU allocation is below the documented secure-HA profile requirement; single-cluster TiDB passed. |
-| RabbitMQ management HTTPS | NOT_IMPLEMENTED | the admin adapter is deliberately registered only for `rabbitmq+http://`; direct AMQPS is tested, but management HTTPS requires a TLS HTTP transport. |
+| RabbitMQ management HTTPS | COMPLETE (2026-07-25 refresh) | `rabbitmq+https://` now uses strict server-name validation, native plus DSN-provided CA roots, bounded HTTP responses, auth-error classification, and the same management lifecycle as HTTP. The RabbitMQ 3.13 TLS profile passed the HTTPS catalog/detail/delete lifecycle together with AMQPS consume. |
 
 Cleanup: PASS. The final product-specific container, network, and volume
 queries were empty after the VictoriaMetrics profile used the common teardown
