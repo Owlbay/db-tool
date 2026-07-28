@@ -155,3 +155,28 @@ The published binary is linker-signed ad hoc (`Signature=adhoc`, no
 TeamIdentifier), not Developer ID signed, notarized, or stapled. It is usable
 for direct/manual distribution on Apple Silicon, while those Apple trust-chain
 steps remain required before describing it as a fully polished macOS installer.
+
+## v1.0.2 local release candidate
+
+Result: LOCAL_CANDIDATE_PASS
+
+Run at: 2026-07-28 Asia/Shanghai
+
+This candidate assigns a new immutable patch identity to the ten commits after
+`v1.0.1`, including named-product depth evidence, VictoriaMetrics support,
+Elasticsearch HTTPS verification, RabbitMQ management HTTPS, and the native npm
+prepublish evidence gate. It is not yet a claim that the public tag or GitHub
+prerelease exists.
+
+| Candidate check | Result |
+| --- | --- |
+| full repository gate | `./scripts/verify.sh` PASS with host loopback permission; 28-task ledger and final-goal validators synchronized |
+| release identity | `./scripts/validate-release-version.sh v1.0.2` PASS |
+| locked build/package | `./scripts/package-macos-arm64.sh v1.0.2` PASS |
+| archive | `release-dist/macos-arm64/dbtool-v1.0.2-aarch64-apple-darwin.tar.gz`, 11,160,749 bytes |
+| SHA-256 | `04c46739c07778b0b4cb84123ad52dee0253eaed5ff76f20f8a63d367d04a0bf`; sidecar verification PASS |
+| payload/runtime | binary, bash/zsh/fish completions and manpage present; packaged SQLite core smoke and exact `dbtool 1.0.2` version PASS |
+
+Remote completion requires a successful hosted CI run for the release source,
+followed by the immutable `v1.0.2` tag workflow and independent verification of
+the public archive and checksum sidecar.

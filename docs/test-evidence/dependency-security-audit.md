@@ -2,7 +2,7 @@
 
 Result: OPEN_UPSTREAM_REMEDIATION
 
-Run at (UTC): 2026-07-17
+Run at (UTC): 2026-07-28
 
 Scope: `Cargo.lock`、正式 macOS ARM64 `portable` CLI、未发布的 TUI
 
@@ -39,10 +39,13 @@ HIGH 告警需要调用方配置恶意或异常 CRL；当前 SQL Server Rustls �
 
 - `rustls 0.21.12` 固定在 `rustls-webpki ^0.101.7`；当前 crates.io 最高
   `tiberius` 仍是 `0.12.3`，没有修复分支可直接升级。
-- `async-nats 0.37.0` 固定在 `rustls-webpki ^0.102`；首个迁移到修复系列的
-  `async-nats 0.47.0` 同时把 MSRV 提高到 Rust 1.88，并跨越十个 minor 版本。
-- `ratatui 0.28.1` 固定在 `lru ^0.12`；稳定版 `ratatui 0.29.0` 仍未迁移，
-  不能强制解析到不兼容的 `lru 0.16.3`。
+- `async-nats 0.37.0` 固定在 `rustls-webpki ^0.102`；截至本次复核，
+  `async-nats 0.50.0` 已迁移到 `rustls-webpki 0.103.10`，但仍低于另三条告警
+  所需的 `0.103.12`/`0.103.13`，同时把 MSRV 提高到 Rust 1.88 并跨越多个
+  minor 版本，因此不能作为一次低风险清零升级。
+- `ratatui 0.28.1` 固定在 `lru ^0.12`。`ratatui 0.30.2` 已不再依赖 `lru`，
+  但它迁移到 Rust 2024 edition、要求 Rust 1.88，且跨越破坏性 API 变更；不能
+  只靠 lockfile 更新，也不能在缺少 TUI 回归时作为安全补丁强行合入。
 
 离线 `cargo update --dry-run` 已证明三个旧依赖槽位都不能只靠 lockfile 更新解除。
 为追求零告警而切换 SQL Server 到 `native-tls` 可能破坏 Linux musl 自包含和交叉编译，
@@ -50,12 +53,14 @@ HIGH 告警需要调用方配置恶意或异常 CRL；当前 SQL Server Rustls �
 
 ## 解除条件
 
-1. NATS 独立升级到 `async-nats >= 0.47`，明确评审 MSRV 1.88，完成 adapter、
-   JetStream、MQ TLS 和五目标 `portable` 构建回归。
+1. NATS 等待或采用包含 `rustls-webpki >= 0.103.13` 的 async-nats 发布，
+   明确评审 MSRV 1.88 与跨版本 API 变化，完成 adapter、JetStream、MQ TLS
+   和五目标 `portable` 构建回归。
 2. SQL Server 采用通过五目标验证的安全 TLS feature，或维护迁移到
    `tokio-rustls 0.26 / rustls 0.23` 的受控 Tiberius fork，并完成真实 SQL Server
    TLS 产品测试。
-3. TUI 等待 Ratatui 稳定升级，或对 `lru 0.12.5` 做最小受控 backport；不得把
-   `^0.12` 强制替换为 API 不兼容的 `0.16.3`。
+3. TUI 迁移到已移除 `lru` 的 Ratatui 新线并完成 Rust 1.88/API/UI 回归，或对
+   `lru 0.12.5` 做最小受控 backport；不得把 `^0.12` 强制替换为 API 不兼容的
+   `0.16.3`。
 4. 重跑 `cargo tree --locked`、全仓验证、NATS/SQL Server TLS live、macOS ARM64
    打包，并确认 Dependabot open alerts 清零后，才能把本证据改为 PASS。

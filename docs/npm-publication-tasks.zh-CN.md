@@ -1,6 +1,6 @@
 # npm 发布任务表
 
-最后更新：2026-07-25
+最后更新：2026-07-28
 
 这个任务表把“已经可以生成 npm 包”和“已经公开发布到 npm”分开记录。
 npm 版本不可覆盖，因此入口包只有在同版本的六个平台包都准备好后才能发布。
@@ -20,7 +20,7 @@ npm 版本不可覆盖，因此入口包只有在同版本的六个平台包都�
 建议的正式顺序：
 
 1. 手动运行 `npm prepublish evidence`，从同一个不可变 tag 构建并验证六个平台二进制。
-2. 执行 `node scripts/package-npm.mjs <artifact-root> <out-dir> v1.0.1`。
+2. 执行 `node scripts/package-npm.mjs <artifact-root> <out-dir> v1.0.2`。
 3. 再次执行 7 个 `npm publish --dry-run`，核对包名、版本、OS/CPU、许可证和 provenance 源地址。
 4. 按 Linux x64、Linux arm64、macOS x64、macOS arm64、Windows x64、Windows arm64 的顺序发布平台包。
 5. 确认平台包在 registry 可见后，最后发布 `@yovinchen/dbtool`。

@@ -1,6 +1,6 @@
 # dbtool Final Goal Audit
 
-Last updated: 2026-07-25
+Last updated: 2026-07-28
 
 This audit maps the final objective to current, repo-verifiable evidence. It is
 not a replacement for optional live Docker drills, but it proves the codebase has
@@ -26,11 +26,12 @@ Product-specific production-readiness exercises remain explicit boundaries in
 [implementation-status.md](implementation-status.md), not missing pieces of this
 objective.
 
-The current [`v1.0.1`](https://github.com/yovinchen/db-tool/releases/tag/v1.0.1)
-Apple Silicon prerelease points to commit `6794f1b`; required CI run
-`29905316297` and release run `29906000948` both passed. The historical
-`v1.0.0` prerelease remains unchanged at commit `193d32e` and was not moved or
-reused.
+The current public
+[`v1.0.1`](https://github.com/yovinchen/db-tool/releases/tag/v1.0.1) Apple
+Silicon prerelease points to commit `6794f1b`; required CI run `29905316297` and
+release run `29906000948` both passed. The accumulated hardening now carries
+workspace version `1.0.2` and must be published under a new immutable `v1.0.2`
+tag; historical tags are not moved or reused.
 
 The real-product validation campaign is reported separately: 25 tasks are
 `COMPLETE`, 1 is `BLOCKED`, 2 are `EXTERNAL`, and none are `PARTIAL`.

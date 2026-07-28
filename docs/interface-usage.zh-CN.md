@@ -393,7 +393,7 @@ screen、再关闭 raw mode；即使第一步恢复失败，也仍继续执行�
 互斥和支持 scheme。正式 tag 发布先执行：
 
 ```bash
-./scripts/validate-release-version.sh v1.0.1
+./scripts/validate-release-version.sh v1.0.2
 ```
 
 tag 必须严格等于 workspace 中 `dbtool-cli` 的版本；若同名 tag 已存在，还必须指向

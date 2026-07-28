@@ -6,7 +6,7 @@ on:
       release_ref:
         description: Immutable v-prefixed release tag to package
         required: true
-        default: v1.0.1
+        default: v1.0.2
         type: string
 
 permissions:

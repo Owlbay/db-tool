@@ -61,7 +61,7 @@ npm error code ENEEDAUTH
 The official release workflow also produces only the selected macOS ARM64
 binary, not the complete real six-platform binary matrix. Consequently no npm
 publish command was executed. Publishing only the wrapper and one platform at
-version `1.0.1` would create an immutable incomplete release that could not be
+version `1.0.2` would create an immutable incomplete release that could not be
 safely backfilled.
 
 ## Native Prepublish Harness
