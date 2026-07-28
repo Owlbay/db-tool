@@ -156,17 +156,20 @@ TeamIdentifier), not Developer ID signed, notarized, or stapled. It is usable
 for direct/manual distribution on Apple Silicon, while those Apple trust-chain
 steps remain required before describing it as a fully polished macOS installer.
 
-## v1.0.2 local release candidate
+## Current v1.0.2 release
 
-Result: LOCAL_CANDIDATE_PASS
+Result: PUBLISHED_PRERELEASE_PASS
 
 Run at: 2026-07-28 Asia/Shanghai
 
-This candidate assigns a new immutable patch identity to the ten commits after
-`v1.0.1`, including named-product depth evidence, VictoriaMetrics support,
-Elasticsearch HTTPS verification, RabbitMQ management HTTPS, and the native npm
-prepublish evidence gate. It is not yet a claim that the public tag or GitHub
-prerelease exists.
+Source and immutable tag: `v1.0.2` at
+`4331cbf1e0382e93576f93f842eae20111de7e78`. Required hosted CI
+[`30322101655`](https://github.com/yovinchen/db-tool/actions/runs/30322101655)
+passed all required lint, test, Windows portable, and five-target build jobs
+before the tag was created. Release workflow
+[`30322606145`](https://github.com/yovinchen/db-tool/actions/runs/30322606145)
+then passed tag/version validation, native ARM64 build and runtime smoke,
+archive smoke, checksum generation, and prerelease publication.
 
 | Candidate check | Result |
 | --- | --- |
@@ -177,6 +180,19 @@ prerelease exists.
 | SHA-256 | `04c46739c07778b0b4cb84123ad52dee0253eaed5ff76f20f8a63d367d04a0bf`; sidecar verification PASS |
 | payload/runtime | binary, bash/zsh/fish completions and manpage present; packaged SQLite core smoke and exact `dbtool 1.0.2` version PASS |
 
-Remote completion requires a successful hosted CI run for the release source,
-followed by the immutable `v1.0.2` tag workflow and independent verification of
-the public archive and checksum sidecar.
+The published GitHub assets were downloaded into a new temporary directory and
+verified independently:
+
+| Published asset check | Result |
+| --- | --- |
+| release identity | GitHub Pre-release [`v1.0.2`](https://github.com/yovinchen/db-tool/releases/tag/v1.0.2), not a draft; published 2026-07-28 |
+| attached asset set | exactly `dbtool-v1.0.2-aarch64-apple-darwin.tar.gz` and its `.sha256` sidecar |
+| archive size/digest | 10,957,584 bytes; SHA-256 `2dd3d1aa92278204f114ca53ac81eb40b51c120d1f36d6070d43b2ff42e8c685` |
+| sidecar verification | `shasum -a 256 -c` PASS against the downloaded archive |
+| payload | binary, bash/zsh/fish completions, and `dbtool.1` manpage PASS |
+| executable identity | Mach-O 64-bit thin `arm64`; `lipo -archs` returned `arm64` |
+| executable version/runtime | exact `dbtool 1.0.2`; downloaded SQLite core smoke PASS |
+
+The local and GitHub-built archives have different byte-level digests because
+they contain independently built binaries and archive metadata; the published
+asset digest above is authoritative for downloads.

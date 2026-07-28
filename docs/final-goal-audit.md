@@ -26,12 +26,10 @@ Product-specific production-readiness exercises remain explicit boundaries in
 [implementation-status.md](implementation-status.md), not missing pieces of this
 objective.
 
-The current public
-[`v1.0.1`](https://github.com/yovinchen/db-tool/releases/tag/v1.0.1) Apple
-Silicon prerelease points to commit `6794f1b`; required CI run `29905316297` and
-release run `29906000948` both passed. The accumulated hardening now carries
-workspace version `1.0.2` and must be published under a new immutable `v1.0.2`
-tag; historical tags are not moved or reused.
+The current [`v1.0.2`](https://github.com/yovinchen/db-tool/releases/tag/v1.0.2)
+Apple Silicon prerelease points to commit `4331cbf`; required CI run
+`30322101655` and release run `30322606145` both passed. Historical `v1.0.0`
+and `v1.0.1` prereleases remain immutable and were not moved or reused.
 
 The real-product validation campaign is reported separately: 25 tasks are
 `COMPLETE`, 1 is `BLOCKED`, 2 are `EXTERNAL`, and none are `PARTIAL`.
@@ -63,7 +61,7 @@ fallback.
 | Protocol-family reuse | `crates/dbtool-core/src/registry/alias.rs` maps compatible schemes to canonical families including MySQL/MariaDB/TiDB, PostgreSQL/Cockroach/Timescale/Redshift, Redis/Valkey/KeyDB/Dragonfly, Kafka/AutoMQ/Redpanda/WarpStream/Confluent, and OpenSearch/Elasticsearch; external Redshift and Kafka vendor smokes verify supplied non-local endpoints without committing secrets. |
 | SQL, CQL, NoSQL, search, time-series coverage | SQL, Cassandra/ScyllaDB CQL, Redis-compatible KV, MongoDB documents, OpenSearch/Elasticsearch search, and Prometheus time-series adapters are implemented and listed in `docs/implementation-status.md`; public export/import commands cover logical SQL row, KV, and document transfers, while OpenSearch security-plugin TLS and product-native Elasticsearch have opt-in live profiles. |
 | Messaging coverage | Kafka/Redpanda-compatible, env-gated AutoMQ/WarpStream/Confluent vendor smoke, AMQP/RabbitMQ, Redis Streams/PubSub, RabbitMQ management, and NATS/JetStream coverage are implemented and documented. |
-| Selected release target | `.github/workflows/release.yml` builds and runs only `aarch64-apple-darwin` on a native GitHub macOS ARM64 runner; release run `29906000948` published the verified `v1.0.1` archive and SHA-256 sidecar; `scripts/package-macos-arm64.sh` reproduces the single archive locally. |
+| Selected release target | `.github/workflows/release.yml` builds and runs only `aarch64-apple-darwin` on a native GitHub macOS ARM64 runner; release run `30322606145` published the verified `v1.0.2` archive and SHA-256 sidecar; `scripts/package-macos-arm64.sh` reproduces the single archive locally. |
 | Single binary artifact | Release archives contain `dbtool` or `dbtool.exe`; `scripts/smoke-binary.sh` and `scripts/smoke-release-artifacts.sh` validate packaged binaries. |
 | Completion and manpage artifacts | `dbtool generate-artifacts` emits bash/zsh/fish completions and `dbtool.1` from clap metadata; the official macOS ARM64 archive includes those files. |
 | Optional package generators | `dist/npm`, `scripts/package-npm.mjs`, `dist/python`, `scripts/package-python-wheel.py`, and `dist/mise/README.md` remain available without expanding the official single-asset release. The npm path has a fail-closed six-native-plus-wrapper matrix test, license/registry metadata, offline install smoke, and seven dry-run publishes; actual registry publication is not claimed. |
