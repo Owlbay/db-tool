@@ -20,4 +20,4 @@ Expected mise form:
 mise use -g ubi:YoVinchen/db-tool@latest
 ```
 
-If a local mise version needs explicit binary selection, use repository `YoVinchen/db-tool`, binary `dbtool`, and the target-specific asset above.
+If a local mise version needs explicit binary selection, use repository `Owlbay/db-tool`, binary `dbtool`, and the target-specific asset above.

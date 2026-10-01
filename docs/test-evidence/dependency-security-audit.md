@@ -10,11 +10,11 @@ Scope: `Cargo.lock`、正式 macOS ARM64 `portable` CLI、未发布的 TUI
 
 | Dependabot | Severity | Dependency | Locked path | First patched |
 | --- | --- | --- | --- | --- |
-| [#5](https://github.com/yovinchen/db-tool/security/dependabot/5) / `GHSA-82j2-j2ch-gfr8` | HIGH | `rustls-webpki` | `0.101.7` / `0.102.8` | `0.103.13` |
-| [#2](https://github.com/yovinchen/db-tool/security/dependabot/2) / `GHSA-pwjx-qhcg-rvj4` | MEDIUM | `rustls-webpki` | `0.102.8` | `0.103.10` |
-| [#3](https://github.com/yovinchen/db-tool/security/dependabot/3) / `GHSA-965h-392x-2mh5` | LOW | `rustls-webpki` | `0.101.7` / `0.102.8` | `0.103.12` |
-| [#4](https://github.com/yovinchen/db-tool/security/dependabot/4) / `GHSA-xgp8-3hg3-c2mh` | LOW | `rustls-webpki` | `0.101.7` / `0.102.8` | `0.103.12` |
-| [#1](https://github.com/yovinchen/db-tool/security/dependabot/1) / `GHSA-rhfx-m35p-ff5j` | LOW | `lru` | `0.12.5` | `0.16.3` |
+| [#5](https://github.com/Owlbay/db-tool/security/dependabot/5) / `GHSA-82j2-j2ch-gfr8` | HIGH | `rustls-webpki` | `0.101.7` / `0.102.8` | `0.103.13` |
+| [#2](https://github.com/Owlbay/db-tool/security/dependabot/2) / `GHSA-pwjx-qhcg-rvj4` | MEDIUM | `rustls-webpki` | `0.102.8` | `0.103.10` |
+| [#3](https://github.com/Owlbay/db-tool/security/dependabot/3) / `GHSA-965h-392x-2mh5` | LOW | `rustls-webpki` | `0.101.7` / `0.102.8` | `0.103.12` |
+| [#4](https://github.com/Owlbay/db-tool/security/dependabot/4) / `GHSA-xgp8-3hg3-c2mh` | LOW | `rustls-webpki` | `0.101.7` / `0.102.8` | `0.103.12` |
+| [#1](https://github.com/Owlbay/db-tool/security/dependabot/1) / `GHSA-rhfx-m35p-ff5j` | LOW | `lru` | `0.12.5` | `0.16.3` |
 
 这五条告警来自两个依赖，不是五个不同的运行时组件。
 

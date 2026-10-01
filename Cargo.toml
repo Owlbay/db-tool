@@ -23,7 +23,7 @@ version       = "1.0.2"
 edition       = "2021"
 authors       = ["YoVinchen <gzh298255@gmail.com>"]
 license       = "MIT OR Apache-2.0"
-repository    = "https://github.com/YoVinchen/db-tool"
+repository    = "https://github.com/Owlbay/db-tool"
 rust-version  = "1.80"
 
 [workspace.dependencies]

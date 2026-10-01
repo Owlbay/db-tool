@@ -119,7 +119,7 @@ done
 
 require_pattern "dist/npm/bin/dbtool.js" "DBTOOL_BINARY"
 require_pattern "dist/npm/package.json" '"access": "public"'
-require_pattern "dist/npm/package.json" 'git+https://github.com/yovinchen/db-tool.git'
+require_pattern "dist/npm/package.json" 'git+https://github.com/Owlbay/db-tool.git'
 require_pattern "scripts/package-npm.mjs" "copyLicenses"
 require_pattern "scripts/package-npm-test.mjs" "verifyDryRunPublication"
 require_pattern "dist/python/dbtool_bin/cli.py" "DBTOOL_BINARY"

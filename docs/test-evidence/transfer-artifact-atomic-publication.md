@@ -42,14 +42,14 @@ Every pull request now runs the core atomic tests and the exact transfer replace
 
 The gate passed for current implementation commit
 `9529b518804b9363b5fdea094cfe400dfa2c7594` in
-[workflow run 29599157939](https://github.com/yovinchen/db-tool/actions/runs/29599157939):
+[workflow run 29599157939](https://github.com/Owlbay/db-tool/actions/runs/29599157939):
 
-- [Windows tests](https://github.com/yovinchen/db-tool/actions/runs/29599157939/job/87946815132)
+- [Windows tests](https://github.com/Owlbay/db-tool/actions/runs/29599157939/job/87946815132)
   ran the core atomic and exact transfer replacement tests successfully.
-- [Windows x64 portable gate](https://github.com/yovinchen/db-tool/actions/runs/29599157939/job/87946814998)
+- [Windows x64 portable gate](https://github.com/Owlbay/db-tool/actions/runs/29599157939/job/87946814998)
   compiled and linked the release binary, then executed the portable SQLite core
   smoke and expected rejected-write probe successfully.
-- [Windows ARM64 portable gate](https://github.com/yovinchen/db-tool/actions/runs/29599157939/job/87946815000)
+- [Windows ARM64 portable gate](https://github.com/Owlbay/db-tool/actions/runs/29599157939/job/87946815000)
   compiled and linked the release binary. Runtime was correctly omitted because
   GitHub's hosted Windows runner is x64.
 

@@ -166,9 +166,9 @@ def metadata(version: str) -> str:
 Name: {PACKAGE_NAME}
 Version: {version}
 Summary: dbtool command-line binary wrapper
-Author-email: YoVinchen <gzh298255@gmail.com>
+Author-email: Owlbay <gzh298255@gmail.com>
 License: MIT OR Apache-2.0
-Project-URL: Repository, https://github.com/YoVinchen/db-tool
+Project-URL: Repository, https://github.com/Owlbay/db-tool
 Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 

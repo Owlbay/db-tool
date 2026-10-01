@@ -85,7 +85,7 @@ Command: `./scripts/package-macos-arm64.sh`
 | macOS arm64 release binary | PASS | 34 portable schemes; version exact PASS | direct `--version` PASS |
 | `dbtool-v1.0.0-aarch64-apple-darwin.tar.gz` | PASS, 11,117,865 bytes | executable + completions + manpage | extracted runtime and SQLite core smoke PASS |
 | checksum sidecar | PASS | SHA-256 `e70dd45a6465a5ce3dad9c60ca1ab2594c4dbff9267ebe74b9c9f9bbe3b27447` | independent `shasum -a 256 -c` PASS |
-| official release workflow | PASS ([run 29556274392](https://github.com/yovinchen/db-tool/actions/runs/29556274392)) | native `macos-latest` ARM64 build, one archive and its SHA-256 sidecar | published as GitHub Pre-release `v1.0.0` |
+| official release workflow | PASS ([run 29556274392](https://github.com/Owlbay/db-tool/actions/runs/29556274392)) | native `macos-latest` ARM64 build, one archive and its SHA-256 sidecar | published as GitHub Pre-release `v1.0.0` |
 
 Release boundary: the current product decision intentionally publishes only
 Apple Silicon macOS. Linux, Windows, Intel Mac, npm, and Python generators remain
@@ -94,7 +94,7 @@ intentional and no longer an incomplete release claim.
 
 ## Published pre-release verification
 
-GitHub Pre-release [`v1.0.0`](https://github.com/yovinchen/db-tool/releases/tag/v1.0.0)
+GitHub Pre-release [`v1.0.0`](https://github.com/Owlbay/db-tool/releases/tag/v1.0.0)
 was published from source commit `193d32e5b38a4dfd6c11342809497d7df79d52fd`
 after CI run `29556079528` completed all 11 required jobs successfully. Release
 run `29556274392` passed tag validation, native ARM64 build/runtime smoke,
@@ -119,9 +119,9 @@ Run at: 2026-07-22 Asia/Shanghai
 
 Source and immutable tag: `v1.0.1` at
 `6794f1bf3dddd3a1662adaecee0e5c0be0e71e46`. Required hosted CI
-[`29905316297`](https://github.com/yovinchen/db-tool/actions/runs/29905316297)
+[`29905316297`](https://github.com/Owlbay/db-tool/actions/runs/29905316297)
 passed before the tag was created. Release workflow
-[`29906000948`](https://github.com/yovinchen/db-tool/actions/runs/29906000948)
+[`29906000948`](https://github.com/Owlbay/db-tool/actions/runs/29906000948)
 then passed tag/version validation, native ARM64 build and runtime smoke,
 archive smoke, checksum generation, and prerelease publication.
 
@@ -139,7 +139,7 @@ verified independently rather than trusting the workflow workspace:
 
 | Published asset check | Result |
 | --- | --- |
-| release identity | GitHub Pre-release [`v1.0.1`](https://github.com/yovinchen/db-tool/releases/tag/v1.0.1), not a draft; published 2026-07-22 |
+| release identity | GitHub Pre-release [`v1.0.1`](https://github.com/Owlbay/db-tool/releases/tag/v1.0.1), not a draft; published 2026-07-22 |
 | attached asset set | exactly `dbtool-v1.0.1-aarch64-apple-darwin.tar.gz` and its `.sha256` sidecar |
 | archive size/digest | 10,913,598 bytes; SHA-256 `82df8e0727ef9ce94dfc797e5a81890707c52dfbc6f8e6be90a63b231aac104b` |
 | sidecar verification | `shasum -a 256 -c` PASS against the downloaded archive |
@@ -164,10 +164,10 @@ Run at: 2026-07-28 Asia/Shanghai
 
 Source and immutable tag: `v1.0.2` at
 `4331cbf1e0382e93576f93f842eae20111de7e78`. Required hosted CI
-[`30322101655`](https://github.com/yovinchen/db-tool/actions/runs/30322101655)
+[`30322101655`](https://github.com/Owlbay/db-tool/actions/runs/30322101655)
 passed all required lint, test, Windows portable, and five-target build jobs
 before the tag was created. Release workflow
-[`30322606145`](https://github.com/yovinchen/db-tool/actions/runs/30322606145)
+[`30322606145`](https://github.com/Owlbay/db-tool/actions/runs/30322606145)
 then passed tag/version validation, native ARM64 build and runtime smoke,
 archive smoke, checksum generation, and prerelease publication.
 
@@ -185,7 +185,7 @@ verified independently:
 
 | Published asset check | Result |
 | --- | --- |
-| release identity | GitHub Pre-release [`v1.0.2`](https://github.com/yovinchen/db-tool/releases/tag/v1.0.2), not a draft; published 2026-07-28 |
+| release identity | GitHub Pre-release [`v1.0.2`](https://github.com/Owlbay/db-tool/releases/tag/v1.0.2), not a draft; published 2026-07-28 |
 | attached asset set | exactly `dbtool-v1.0.2-aarch64-apple-darwin.tar.gz` and its `.sha256` sidecar |
 | archive size/digest | 10,957,584 bytes; SHA-256 `2dd3d1aa92278204f114ca53ac81eb40b51c120d1f36d6070d43b2ff42e8c685` |
 | sidecar verification | `shasum -a 256 -c` PASS against the downloaded archive |

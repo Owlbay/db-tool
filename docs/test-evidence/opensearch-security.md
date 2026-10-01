@@ -14,7 +14,7 @@ Command: `./scripts/integration-opensearch-security-test.sh`
 
 Hosted confirmation: the same full HTTPS CRUD/auth/CA/cleanup gate passed on
 GitHub's x86_64 Linux runner in
-[workflow run 29600565733, job 87951388535](https://github.com/yovinchen/db-tool/actions/runs/29600565733/job/87951388535)
+[workflow run 29600565733, job 87951388535](https://github.com/Owlbay/db-tool/actions/runs/29600565733/job/87951388535)
 at commit `c5dfa31`. The local ARM64 run below remains the resource-level source;
 the hosted run proves the named product path on a second architecture.
 

@@ -10,7 +10,7 @@
   "preferUnplugged": true,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yovinchen/db-tool.git"
+    "url": "git+https://github.com/Owlbay/db-tool.git"
   },
   "bin": {
     "dbtool": "bin/dbtool.js"

@@ -14,8 +14,8 @@ Product version: Microsoft SQL Server 2022 CU26, official image
 
 Command: `./scripts/integration-sqlserver-test.sh`
 
-Workflow: [run 29598991078](https://github.com/yovinchen/db-tool/actions/runs/29598991078),
-[SQL Server job 87946289930](https://github.com/yovinchen/db-tool/actions/runs/29598991078/job/87946289930)
+Workflow: [run 29598991078](https://github.com/Owlbay/db-tool/actions/runs/29598991078),
+[SQL Server job 87946289930](https://github.com/Owlbay/db-tool/actions/runs/29598991078/job/87946289930)
 
 Implementation commits: `c6d0c40`, `bd41fc8`, `1fd88e6`
 

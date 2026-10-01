@@ -166,7 +166,7 @@ function packPlatformPackage(target) {
         preferUnplugged: true,
         repository: {
           type: "git",
-          url: "git+https://github.com/yovinchen/db-tool.git",
+          url: "git+https://github.com/Owlbay/db-tool.git",
         },
         os: [target.os],
         cpu: [target.cpu],

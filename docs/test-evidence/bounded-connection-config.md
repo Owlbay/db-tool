@@ -52,7 +52,7 @@ git diff --check
 ## 已记录边界
 
 - 当前主机不是 Windows；drive-relative/rooted path cfg 回归由
-  [Windows tests job 87946815132](https://github.com/yovinchen/db-tool/actions/runs/29599157939/job/87946815132)
+  [Windows tests job 87946815132](https://github.com/Owlbay/db-tool/actions/runs/29599157939/job/87946815132)
   运行通过，x64 runtime 与 ARM64 compile/link 证据见
   [`transfer-artifact-atomic-publication.md`](transfer-artifact-atomic-publication.md)。
 - 同 inode、同长度且在读取期间原地改写的外部进程无法仅靠 portable file metadata 完全识别；

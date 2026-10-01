@@ -26,7 +26,7 @@ Product-specific production-readiness exercises remain explicit boundaries in
 [implementation-status.md](implementation-status.md), not missing pieces of this
 objective.
 
-The current [`v1.0.2`](https://github.com/yovinchen/db-tool/releases/tag/v1.0.2)
+The current [`v1.0.2`](https://github.com/Owlbay/db-tool/releases/tag/v1.0.2)
 Apple Silicon prerelease points to commit `4331cbf`; required CI run
 `30322101655` and release run `30322606145` both passed. Historical `v1.0.0`
 and `v1.0.1` prereleases remain immutable and were not moved or reused.

@@ -116,7 +116,7 @@ function verifyPlatformMappingAndMetadata() {
 function verifyCommonMetadata(metadata) {
   assert(metadata.license === "MIT OR Apache-2.0", `${metadata.name} SPDX expression mismatch`);
   assert(
-    metadata.repository?.url === "git+https://github.com/yovinchen/db-tool.git",
+    metadata.repository?.url === "git+https://github.com/Owlbay/db-tool.git",
     `${metadata.name} must use the canonical lowercase repository URL`,
   );
   assert(metadata.publishConfig?.access === "public", `${metadata.name} must publish with public access`);
