@@ -11,7 +11,7 @@ dependencies = [
  "dbtool-core",
  "futures",
  "lapin",
- "rustls 0.23.40",
+ "rustls 0.23.43",
  "rustls-native-certs 0.8.4",
  "rustls-pemfile 2.2.0",
  "rustls-pki-types",
@@ -116,7 +116,7 @@ dependencies = [
  "async-trait",
  "dbtool-core",
  "futures",
- "rustls 0.23.40",
+ "rustls 0.23.43",
  "rustls-native-certs 0.8.4",
  "rustls-pemfile 2.2.0",
  "rustls-pki-types",
@@ -2563,7 +2563,7 @@ dependencies = [
  "percent-encoding",
  "rand 0.9.4",
  "rustc_version_runtime",
- "rustls 0.23.40",
+ "rustls 0.23.43",
  "serde",
  "serde_bytes",
  "serde_with",
@@ -3384,7 +3384,7 @@ dependencies = [
  "num-bigint",
  "percent-encoding",
  "pin-project-lite",
- "rustls 0.23.40",
+ "rustls 0.23.43",
  "rustls-native-certs 0.7.3",
  "rustls-pemfile 2.2.0",
  "rustls-pki-types",
@@ -3593,9 +3593,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.40"
+version = "0.23.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef86cd5876211988985292b91c96a8f2d298df24e75989a43a3c73f2d4d8168b"
+checksum = "0283386ce02abc0151e1761d08802dfe86c173b0b494af5cbc086574e453da06"
 dependencies = [
  "log",
  "once_cell",
@@ -3613,7 +3613,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "70cc376c6ba1823ae229bacf8ad93c136d93524eab0e4e5e0e4f96b9c4e5b212"
 dependencies = [
  "log",
- "rustls 0.23.40",
+ "rustls 0.23.43",
  "rustls-native-certs 0.7.3",
  "rustls-pki-types",
  "rustls-webpki 0.103.13",
@@ -4231,7 +4231,7 @@ dependencies = [
  "memchr",
  "once_cell",
  "percent-encoding",
- "rustls 0.23.40",
+ "rustls 0.23.43",
  "serde",
  "serde_json",
  "sha2",
@@ -4687,7 +4687,7 @@ version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1729aa945f29d91ba541258c8df89027d5792d85a8841fb65e8bf0f4ede4ef61"
 dependencies = [
- "rustls 0.23.40",
+ "rustls 0.23.43",
  "tokio",
 ]
 
